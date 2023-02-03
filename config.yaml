@@ -1,0 +1,40 @@
+workdir: /home/victorf/pipeline-metagenomic
+
+threads: 4
+mem_mb: 256000
+
+# Adapter Removal parameters
+adapterremoval:
+    minquality: 20
+    minlength: 31
+    mm: 3
+    minalignmentlength: 11
+    optional: '--trimns --trimqualities --collapse'
+
+# CD-HIT parameters
+# program can be blastp, blastn, megablast or psiblast
+# circle can be 1 or 0
+cdhit:
+    identity: 0.98
+    program: 'blastn'
+    circle: 1
+
+# QUAST parameters
+quast:
+    reference: 'empty'
+    genes: 'empty'
+
+samples:
+    'M1':
+        forward: 'data/M1_1.fq.gz'
+        revers: 'data/M1_2.fq.gz'
+
+megahit:
+    'klist': '65'
+
+kraken:
+    'db': 'minikraken2_v1_8GB'
+
+# Mininum length of contigs
+contigs:
+    minlength: 200

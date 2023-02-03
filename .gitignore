@@ -1,0 +1,31 @@
+# Ignore os arquivos de sistema do Mac
+.DS_store
+
+# Ignore a pasta results
+results
+
+# Ignore a pasta data
+data
+
+# Ignore a pasta data completo
+data completo
+
+# Ignore a pasta do banco
+minikraken2_v1_8GB
+
+# Ignore a pasta static
+static
+
+# Ignore todos os arquivos de log
+.log
+
+# Ignore arquivos gz
+.gz
+
+#ignore bt2
+.bt2
+
+
+
+# Ignore arquivos de configuração de SASS
+.sass-cache
