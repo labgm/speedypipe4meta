@@ -1,0 +1,6 @@
+MaxBin 2.2.7
+Min contig length: 500
+Thread: 8
+Input contig: results/M1/megahit/final.contigs.fa
+out header: results/M1/maxbin/
+Located abundance file [results/M1/pileup/M1_abundance.txt]

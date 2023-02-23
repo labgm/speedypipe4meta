@@ -1,0 +1,66 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 64
+Rules claiming more threads will be scaled down.
+Conda environments: ignored
+Job stats:
+job        count    min threads    max threads
+-------  -------  -------------  -------------
+all            1              1              1
+maxbin2        1              1              1
+prokka         1              4              4
+total          3              1              4
+
+Select jobs to execute...
+
+[Thu Feb 23 11:47:06 2023]
+rule maxbin2:
+    input: results/M1/megahit/final.contigs.fa, results/M1/pileup/M1_abundance.txt
+    output: results/M1/maxbin2
+    jobid: 9
+    reason: Missing output files: results/M1/maxbin2
+    wildcards: sample=M1
+    resources: tmpdir=/tmp
+
+
+[Thu Feb 23 11:47:06 2023]
+rule prokka:
+    input: results/bin/prokka/binaries/linux/tbl2asn, results/M1/megahit/final.contigs.fa
+    output: results/M1/prokka/M1.gbk
+    log: results/M1/prokka/log-stdout.txt, results/M1/prokka/log-stderr.txt
+    jobid: 4
+    benchmark: results/M1/prokka/benchmark.txt
+    reason: Missing output files: results/M1/prokka/M1.gbk
+    wildcards: sample=M1
+    threads: 4
+    resources: tmpdir=/tmp
+
+Terminating processes on user request, this might take some time.
+[Thu Feb 23 11:47:29 2023]
+Error in rule prokka:
+    jobid: 4
+    input: results/bin/prokka/binaries/linux/tbl2asn, results/M1/megahit/final.contigs.fa
+    output: results/M1/prokka/M1.gbk
+    log: results/M1/prokka/log-stdout.txt, results/M1/prokka/log-stderr.txt (check log file(s) for error details)
+    conda-env: /storage1/victor/speedypipe4meta/.snakemake/conda/889480101f4912776c8519f61ba78d49_
+    shell:
+        
+        export PATH=results/bin/prokka/binaries/linux:$PATH
+        prokka --force --cpus 4 --outdir results/M1/prokka --prefix M1 results/M1/megahit/final.contigs.fa --centre X --compliant > results/M1/prokka/log-stdout.txt 2> results/M1/prokka/log-stderr.txt
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+[Thu Feb 23 11:47:29 2023]
+Error in rule maxbin2:
+    jobid: 9
+    input: results/M1/megahit/final.contigs.fa, results/M1/pileup/M1_abundance.txt
+    output: results/M1/maxbin2
+    conda-env: /storage1/victor/speedypipe4meta/.snakemake/conda/4e3c652eb1f0884dff60385860f576a5_
+    shell:
+        
+            mkdir results/M1/maxbin2
+            /home/victor/storage/MaxBin-2.2.7/run_MaxBin.pl -min_contig_length 500 -thread 8 -contig results/M1/megahit/final.contigs.fa -out results/M1/maxbin2/ -abund results/M1/pileup/M1_abundance.txt
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Complete log: .snakemake/log/2023-02-23T114706.054704.snakemake.log

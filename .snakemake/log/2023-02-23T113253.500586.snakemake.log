@@ -1,0 +1,3 @@
+WildcardError in file /storage1/victor/speedypipe4meta/Snakefile, line 252:
+No values given for wildcard 'MAXBIN_OUTDIR'.
+  File "/storage1/victor/speedypipe4meta/Snakefile", line 252, in <module>
