@@ -24,3 +24,5 @@ rule prokka:
     threads: 4
     resources: tmpdir=/tmp
 
+Terminating processes on user request, this might take some time.
+Cancelling snakemake on user request.

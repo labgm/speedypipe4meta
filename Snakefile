@@ -4,8 +4,8 @@ workdir: config["workdir"]
 
 rule all:
     input:
-        #reativar fastqc_forward = ["results/" + sample + "/fastqc/" + sample + "_1_fastqc.html" for sample in config["samples"]],
-        #reativar fastqc_revers = ["results/" + sample + "/fastqc/" + sample + "_2_fastqc.html" for sample in config["samples"]],
+        fastqc_forward = ["results/" + sample + "/fastqc/" + sample + "_1_fastqc.html" for sample in config["samples"]],
+        fastqc_revers = ["results/" + sample + "/fastqc/" + sample + "_2_fastqc.html" for sample in config["samples"]],
         # trim_forward_paired = ["results/" + sample + "/trimmomatic/" + sample + "_forward_paired.fq.gz" for sample in config["samples"]],
         # trim_forward_unpaired = ["results/" + sample + "/trimmomatic/" + sample + "_forward_unpaired.fq.gz" for sample in config["samples"]],
         # trim_reverse_paired = ["results/" + sample + "/trimmomatic/" + sample + "_reverse_paired.fq.gz" for sample in config["samples"]],
@@ -16,13 +16,10 @@ rule all:
         # bowtie2 = ["results/" + sample + "/bowtie2/" + sample + ".sam"  for sample in config["samples"]],
         abundance = ["results/" + sample + "/pileup/" + sample + "_abundance.txt"  for sample in config["samples"]],
         binning = ["results/" + sample + "/maxbin/" for sample in config["samples"]]
-        # filter = ["results/" + sample + "/mob_recon/chromosome_filtered.fasta" for sample in config["samples"]],
-        # prokka = ["results/" + sample + "/prokka/" + sample + ".gbk" for sample in config["samples"]],
-        # quast = ["results/" + sample + "/quast/report.tsv" for sample in config["samples"]]
 
 # TODO: remember to remove files extracted at the end of the pipeline
 
-# (CARD 01)------------------------------------------------------------------------------------------        
+
 # Step 1: Quality Analysis
 rule fastqc:
     input:
@@ -67,40 +64,8 @@ rule trimmomatic:
             ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:keepBothReads \
             LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:70 \
         """
-# Comando em Linha Única
-# nTrimmomaticPE -threads 4 /home/victorf/pipeline-metagenomic/data/M1_1.fq.gz /home/victorf/pipeline-metagenomic/data/M1_2.fq.gz results/M1/trimmomatic/M1_forward_paired.fq.gz results/M1/trimmomatic/M1_forward_unpaired.fq.gz results/M1/trimmomatic/M1_reverse_paired.fq.gz results/M1/trimmomatic/M1_reverse_unpaired.fq.gz ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:keepBothReads LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:70
 
-# Step 3: Pre-Assembly
-rule kmerstream:
-    input:
-        forward = "results/{sample}/adapterremoval/{sample}_1.fastq",
-        revers = "results/{sample}/adapterremoval/{sample}_2.fastq",
-        singleton = "results/{sample}/adapterremoval/{sample}_singleton.fastq"
-    params:
-        collapsed = "results/{sample}/adapterremoval/{sample}_collapsed.fastq",
-        collapsed_truncated = "results/{sample}/adapterremoval/{sample}_collapsed_truncated.fastq"
-    output:
-        "results/{sample}/kmerstream/ar-{sample}.tsv"
-    log:
-        stdout = "results/{sample}/kmerstream/log-stdout.txt",
-        stderr = "results/{sample}/kmerstream/log-stderr.txt"
-    conda:
-        "envs/kmerstream.yaml"
-    benchmark:
-        "results/{sample}/kmerstream/benchmark.txt"
-    threads:
-        config["threads"]
-    shell:
-        """
-        params=()
-        if [[ -f {params.collapsed} && -f {params.collapsed_truncated} ]]; then
-            params+=({params.collapsed} {params.collapsed_truncated})
-        fi
-        KmerStream --kmer-size=7,9,11,13,15,17,19,21,23,25,27,29,31,33,35,37,39,41,43,45,47,49,51,53,55,57,59,61,63,65,67,69,71,73,75,77,79,81,83,85,87,89,91,93,95,97,99,101,103,105,107,109,111,113,115,117,119,121,123,125,127 --output={output} --threads={threads} --tsv {input.forward} {input.revers} {input.singleton} "${{params[@]}}"
-        """
-
-# (CARD 02)------------------------------------------------------------------------------------------        
-# Step 4: Assembly Megahit
+# Step 3: Assembly Megahit
 rule megahit:
     input:
         forward = "results/{sample}/trimmomatic/{sample}_forward_paired.fq.gz",
@@ -108,9 +73,6 @@ rule megahit:
     params:
         klist = config["megahit"]['klist'],
         output = "results/{sample}/megahit"
-    #     prefix = "results/{sample}/spades",
-    #     collapsed = "results/{sample}/adapterremoval/{sample}_collapsed.fastq",
-    #     collapsed_truncated = "results/{sample}/adapterremoval/{sample}_collapsed_truncated.fastq"
     output:
         "results/{sample}/megahit/final.contigs.fa"
     log:
@@ -120,8 +82,6 @@ rule megahit:
         "envs/megahit.yaml"
     # benchmark:
     #     "results/{sample}/spades/benchmark.txt"
-    # threads:
-    #     config["threads"]
     resources:
         mem_gb = 100
     threads:
@@ -131,8 +91,8 @@ rule megahit:
             megahit -f -1 {input[0]} -2 {input[1]} -t {threads} --k-list {params.klist} -o {params.output}
         """
         # megahit -1 {input[0]}  -2 {input[1]}  -t {threads} -m {resources.mem_gb} -o {params.output}
-# Step 5 (Classificação)
 
+# Step 4 (Classificação)
 rule kraken:
     input:
         "results/{sample}/megahit/final.contigs.fa"
@@ -145,6 +105,7 @@ rule kraken:
     shell:
         "kraken2 --db {params.db} --threads {threads} --report {output} {input}"
 
+# Step 5 (Anotação)
 # Cloning the prokka repository because tbl2asn in bioconda is old and throws errors
 rule install_prokka:
     output:
@@ -159,15 +120,12 @@ rule install_prokka:
 
 rule prokka:
     input:
-        # prokka = "results/bin/prokka",
         prokka = "results/bin/prokka/binaries/linux/tbl2asn",
-        # chromosome = "results/{sample}/mob_recon/chromosome.fasta"
-        chromosome = "results/{sample}/megahit/final.contigs.fa"
+        fasta = "results/{sample}/megahit/final.contigs.fa"
     params:
         outdir = "results/{sample}/prokka",
         prefix = "{sample}",
-        prokka = "results/bin/prokka/binaries/linux",
-        # prokka2 = "results/bin/prokka/bin",
+        prokka = "results/bin/prokka/binaries/linux"
     output:
         "results/{sample}/prokka/{sample}.gbk"
     log:
@@ -181,11 +139,11 @@ rule prokka:
         config["threads"]
     shell:
         # """
-        # prokka --force --cpus {threads} --outdir {params.outdir} --prefix {params.prefix} {input.chromosome} --centre X --compliant > {log.stdout} 2> {log.stderr}
+        # prokka --force --cpus {threads} --outdir {params.outdir} --prefix {params.prefix} {input.fasta} --centre X --compliant > {log.stdout} 2> {log.stderr}
         # """
         """
         export PATH={params.prokka}:$PATH
-        prokka --force --cpus {threads} --outdir {params.outdir} --prefix {params.prefix} {input.chromosome} --centre X --compliant > {log.stdout} 2> {log.stderr}
+        prokka --force --cpus {threads} --outdir {params.outdir} --prefix {params.prefix} {input.fasta} --centre X --compliant > {log.stdout} 2> {log.stderr}
         """
 
 rule bowtie2:
@@ -231,9 +189,6 @@ rule pileup:
             awk '{params.var}' {output.coverage} | grep -v '^#'> {output.abundance}
         """
 
-# def BINS(wildcards):
-#     return [str(wildcards.bin_id)]
-
 rule maxbin2:
     input:
         contig = "results/{sample}/megahit/final.contigs.fa",
@@ -241,32 +196,39 @@ rule maxbin2:
         # bins = expand("{bin}.fasta", bin=BINS)
     output:
         directory("results/{sample}/maxbin/")
-    params:
-        wildcards = "{sample}"
-    wildcard_constraints:
-        bin_id="[0-9]+"
     conda:
         "envs/maxbin.yaml"
     shell:
         """
-            mkdir results/{params.wildcards}/maxbin
+            mkdir {output}
             /home/victor/storage/MaxBin-2.2.7/run_MaxBin.pl -min_contig_length 500 -thread {threads} -contig {input.contig} -out {output}/maxbin -abund {input.abundance}
         """
+import os
+import fnmatch
 
 rule prokka_bin:
     input:
-        # forward = lambda wildcards: fnmatch.filter(os.listdir("results/{sample}/maxbin/"), '*.fasta')
-        fna_files = expand("results/{sample}/maxbin.{bin_id}.fasta", bin_id=BINS)
+        prokka = "results/bin/prokka/binaries/linux/tbl2asn",
+        # Obter nomes dos arquivos fasta do MaxBin2
+        BINS = lambda wildcards: fnmatch.filter(os.listdir("results/" + samples + "/maxbin/"), '*.fasta')
+    params:
+        outdir = "results/{sample}/prokka_bin/",
+        prefix = "{input.BINS}",
+        prokka = "results/bin/prokka/binaries/linux"
     output:
-        gff_files = expand("results/{sample}/{bin_id}.gff", bin_id=BINS),
-        fna_files = expand("results/{sample}/{bin_id}.fna", bin_id=BINS),
-        faa_files = expand("results/{sample}/{bin_id}.faa", bin_id=BINS)
-    wildcard_constraints:
-        bin_id="[0-9]+"
+        "results/{sample}/prokka/{sample}.gbk"
+    log:
+        stdout = "results/{sample}/prokka_bin/log-stdout.txt",
+        stderr = "results/{sample}/prokka_bin/log-stderr.txt"
+    output:
+        "/results/{sample}/prokka_bin/{input.BINS}"
     threads:
         config["threads"]
     shell:
-        "prokka --cpus {threads} {params.prokka_args} {input.fna_files} && "
+        """
+        export PATH={params.prokka}:$PATH
+        prokka --force --cpus {threads} --outdir {params.outdir} --prefix {params.prefix} {input.BINS} --centre X --compliant > {log.stdout} 2> {log.stderr}
+        """
 
 
 # rule prokka_bin:

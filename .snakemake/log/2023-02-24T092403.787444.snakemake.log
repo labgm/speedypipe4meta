@@ -1,0 +1,125 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 64
+Rules claiming more threads will be scaled down.
+Conda environments: ignored
+Job stats:
+job            count    min threads    max threads
+-----------  -------  -------------  -------------
+all                1              1              1
+bowtie2            1             16             16
+fastqc             1             16             16
+kraken             1             16             16
+maxbin2            1              1              1
+megahit            1             16             16
+pileup             1              1              1
+prokka             1             16             16
+trimmomatic        1             16             16
+total              9              1             16
+
+Select jobs to execute...
+
+[Fri Feb 24 09:24:04 2023]
+rule trimmomatic:
+    input: /storage1/victor/speedypipe4meta/data/M1_1.fq.gz, /storage1/victor/speedypipe4meta/data/M1_2.fq.gz
+    output: results/M1/trimmomatic/M1_forward_paired.fq.gz, results/M1/trimmomatic/M1_forward_unpaired.fq.gz, results/M1/trimmomatic/M1_reverse_paired.fq.gz, results/M1/trimmomatic/M1_reverse_unpaired.fq.gz
+    jobid: 4
+    reason: Code has changed since last execution
+    wildcards: sample=M1
+    threads: 16
+    resources: tmpdir=/tmp
+
+
+[Fri Feb 24 09:24:05 2023]
+rule fastqc:
+    input: /storage1/victor/speedypipe4meta/data/M1_1.fq.gz, /storage1/victor/speedypipe4meta/data/M1_2.fq.gz
+    output: results/M1/fastqc/M1_1_fastqc.html, results/M1/fastqc/M1_2_fastqc.html
+    log: results/M1/fastqc/log-stdout.txt, results/M1/fastqc/log-stderr.txt
+    jobid: 1
+    benchmark: results/M1/fastqc/benchmark.txt
+    reason: Missing output files: results/M1/fastqc/M1_2_fastqc.html, results/M1/fastqc/M1_1_fastqc.html
+    wildcards: sample=M1
+    threads: 16
+    resources: tmpdir=/tmp
+
+[Fri Feb 24 09:31:39 2023]
+Finished job 1.
+1 of 9 steps (11%) done
+[Fri Feb 24 09:52:40 2023]
+Finished job 4.
+2 of 9 steps (22%) done
+Select jobs to execute...
+
+[Fri Feb 24 09:52:40 2023]
+rule megahit:
+    input: results/M1/trimmomatic/M1_forward_paired.fq.gz, results/M1/trimmomatic/M1_reverse_paired.fq.gz
+    output: results/M1/megahit/final.contigs.fa
+    log: results/M1/megahit/log-stdout.txt, results/M1/megahit/log-stderr.txt
+    jobid: 3
+    reason: Input files updated by another job: results/M1/trimmomatic/M1_reverse_paired.fq.gz, results/M1/trimmomatic/M1_forward_paired.fq.gz
+    wildcards: sample=M1
+    threads: 16
+    resources: tmpdir=/tmp, mem_gb=100
+
+[Fri Feb 24 10:23:19 2023]
+Finished job 3.
+3 of 9 steps (33%) done
+Select jobs to execute...
+
+[Fri Feb 24 10:23:19 2023]
+rule bowtie2:
+    input: results/M1/megahit/final.contigs.fa, results/M1/trimmomatic/M1_forward_paired.fq.gz, results/M1/trimmomatic/M1_reverse_paired.fq.gz
+    output: results/M1/bowtie2/M1.sam
+    jobid: 9
+    reason: Input files updated by another job: results/M1/trimmomatic/M1_reverse_paired.fq.gz, results/M1/megahit/final.contigs.fa, results/M1/trimmomatic/M1_forward_paired.fq.gz
+    wildcards: sample=M1
+    threads: 16
+    resources: tmpdir=/tmp
+
+
+[Fri Feb 24 10:23:21 2023]
+rule kraken:
+    input: results/M1/megahit/final.contigs.fa
+    output: results/M1/kraken/resultado.txt
+    jobid: 2
+    reason: Input files updated by another job: results/M1/megahit/final.contigs.fa
+    wildcards: sample=M1
+    threads: 16
+    resources: tmpdir=/tmp
+
+
+[Fri Feb 24 10:23:21 2023]
+rule prokka:
+    input: results/bin/prokka/binaries/linux/tbl2asn, results/M1/megahit/final.contigs.fa
+    output: results/M1/prokka/M1.gbk
+    log: results/M1/prokka/log-stdout.txt, results/M1/prokka/log-stderr.txt
+    jobid: 5
+    benchmark: results/M1/prokka/benchmark.txt
+    reason: Missing output files: results/M1/prokka/M1.gbk; Input files updated by another job: results/M1/megahit/final.contigs.fa
+    wildcards: sample=M1
+    threads: 16
+    resources: tmpdir=/tmp
+
+Terminating processes on user request, this might take some time.
+[Fri Feb 24 13:21:18 2023]
+Error in rule bowtie2:
+    jobid: 9
+    input: results/M1/megahit/final.contigs.fa, results/M1/trimmomatic/M1_forward_paired.fq.gz, results/M1/trimmomatic/M1_reverse_paired.fq.gz
+    output: results/M1/bowtie2/M1.sam
+    shell:
+        
+            bowtie2-build -f results/M1/megahit/final.contigs.fa M1db
+            bowtie2 -x M1db -1 results/M1/trimmomatic/M1_forward_paired.fq.gz -2 results/M1/trimmomatic/M1_reverse_paired.fq.gz --no-unal -p 16 -S results/M1/bowtie2/M1.sam 
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+[Fri Feb 24 13:21:22 2023]
+Error in rule kraken:
+    jobid: 2
+    input: results/M1/megahit/final.contigs.fa
+    output: results/M1/kraken/resultado.txt
+    shell:
+        kraken2 --db /usr/local/kraken2/db_standard --threads 16 --report results/M1/kraken/resultado.txt results/M1/megahit/final.contigs.fa
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Cancelling snakemake on user request.
