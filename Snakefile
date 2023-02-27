@@ -1,24 +1,31 @@
+# /home/victor/miniconda3/bin:/home/victor/miniconda3/condabin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/usr/lib/jvm/java-8-oracle/bin:/usr/lib/jvm/java-8-oracle/db/bin:/usr/lib/jvm/java-8-oracle/jre/bin:/home/victor/local/bin
+# /home/victor/mambaforge/bin/conda:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/usr/lib/jvm/java-8-oracle/bin:/usr/lib/jvm/java-8-oracle/db/bin:/usr/lib/jvm/java-8-oracle/jre/bin
 configfile: "config.yaml"
 
 workdir: config["workdir"]
+
+wildcard_constraints:
+    bins_id = "\d{3}"
 
 rule all:
     input:
         fastqc_forward = ["results/" + sample + "/fastqc/" + sample + "_1_fastqc.html" for sample in config["samples"]],
         fastqc_revers = ["results/" + sample + "/fastqc/" + sample + "_2_fastqc.html" for sample in config["samples"]],
-        # trim_forward_paired = ["results/" + sample + "/trimmomatic/" + sample + "_forward_paired.fq.gz" for sample in config["samples"]],
-        # trim_forward_unpaired = ["results/" + sample + "/trimmomatic/" + sample + "_forward_unpaired.fq.gz" for sample in config["samples"]],
-        # trim_reverse_paired = ["results/" + sample + "/trimmomatic/" + sample + "_reverse_paired.fq.gz" for sample in config["samples"]],
-        # trim_reverse_unpaired = ["results/" + sample + "/trimmomatic/" + sample + "_reverse_unpaired.fq.gz" for sample in config["samples"]]
-        # scaffolds = ["results/" + sample + "/megahit/final.contigs.fa" for sample in config["samples"]]
-        classification = ["results/" + sample + "/kraken/resultado.txt" for sample in config["samples"]],
-        anotation = ["results/" + sample + "/prokka/" + sample + ".gbk" for sample in config["samples"]],
-        # bowtie2 = ["results/" + sample + "/bowtie2/" + sample + ".sam"  for sample in config["samples"]],
-        abundance = ["results/" + sample + "/pileup/" + sample + "_abundance.txt"  for sample in config["samples"]],
-        binning = ["results/" + sample + "/maxbin/" for sample in config["samples"]]
+        # # trim_forward_paired = ["results/" + sample + "/trimmomatic/" + sample + "_forward_paired.fq.gz" for sample in config["samples"]],
+        # # trim_forward_unpaired = ["results/" + sample + "/trimmomatic/" + sample + "_forward_unpaired.fq.gz" for sample in config["samples"]],
+        # # trim_reverse_paired = ["results/" + sample + "/trimmomatic/" + sample + "_reverse_paired.fq.gz" for sample in config["samples"]],
+        # # trim_reverse_unpaired = ["results/" + sample + "/trimmomatic/" + sample + "_reverse_unpaired.fq.gz" for sample in config["samples"]]
+        # # scaffolds = ["results/" + sample + "/megahit/final.contigs.fa" for sample in config["samples"]]
+        # classification = ["results/" + sample + "/kraken/resultado.txt" for sample in config["samples"]],
+        # anotation = ["results/" + sample + "/prokka/" + sample + ".gbk" for sample in config["samples"]],
+        # # bowtie2 = ["results/" + sample + "/bowtie2/" + sample + ".sam"  for sample in config["samples"]],
+        # abundance = ["results/" + sample + "/pileup/" + sample + "_abundance.txt"  for sample in config["samples"]],
+        # binning = ["results/" + sample + "/maxbin/" for sample in config["samples"]]
+        prokka_bin = ["results/" + sample + "/prokka_bin/" for sample in config["samples"]]
+        
+
 
 # TODO: remember to remove files extracted at the end of the pipeline
-
 
 # Step 1: Quality Analysis
 rule fastqc:
@@ -90,7 +97,7 @@ rule megahit:
         """
             megahit -f -1 {input[0]} -2 {input[1]} -t {threads} --k-list {params.klist} -o {params.output}
         """
-        # megahit -1 {input[0]}  -2 {input[1]}  -t {threads} -m {resources.mem_gb} -o {params.output}
+        # megahit -1 {input[0]}  -2 {input[1]}  -t {threads} -m {resources.mem_gb} -o {params.output} (Ver com o professor)
 
 # Step 4 (Classificação)
 rule kraken:
@@ -105,8 +112,9 @@ rule kraken:
     shell:
         "kraken2 --db {params.db} --threads {threads} --report {output} {input}"
 
-# Step 5 (Anotação)
+# Step 5 (Anotação Contings)
 # Cloning the prokka repository because tbl2asn in bioconda is old and throws errors
+# https://ftp.ncbi.nih.gov/toolbox/ncbi_tools/converters/by_program/tbl2asn/linux64.tbl2asn.gz
 rule install_prokka:
     output:
         "results/bin/prokka/binaries/linux/tbl2asn"
@@ -145,7 +153,7 @@ rule prokka:
         export PATH={params.prokka}:$PATH
         prokka --force --cpus {threads} --outdir {params.outdir} --prefix {params.prefix} {input.fasta} --centre X --compliant > {log.stdout} 2> {log.stderr}
         """
-
+# Step 6 (Anotação Contings)
 rule bowtie2:
     input:
         contig = "results/{sample}/megahit/final.contigs.fa",
@@ -171,7 +179,12 @@ rule pileup_install:
         """
             wget https://sinalbr.dl.sourceforge.net/project/bbmap/BBMap_39.01.tar.gz
             tar -xvzf BBMap_39.01.tar.gz
-            mv bbmap/ results/bin/
+            if [ ! -d ~/results/bin/bbmap ]; then
+                echo 'Movendo diretório...'
+                mv bbmap/ results/bin/
+            else
+                echo 'Diretório já existe'
+            fi
         """
 
 rule pileup:
@@ -189,47 +202,64 @@ rule pileup:
             awk '{params.var}' {output.coverage} | grep -v '^#'> {output.abundance}
         """
 
-rule maxbin2:
-    input:
-        contig = "results/{sample}/megahit/final.contigs.fa",
-        abundance = "results/{sample}/pileup/{sample}_abundance.txt",
-        # bins = expand("{bin}.fasta", bin=BINS)
-    output:
-        directory("results/{sample}/maxbin/")
-    conda:
-        "envs/maxbin.yaml"
-    shell:
-        """
-            mkdir {output}
-            /home/victor/storage/MaxBin-2.2.7/run_MaxBin.pl -min_contig_length 500 -thread {threads} -contig {input.contig} -out {output}/maxbin -abund {input.abundance}
-        """
 import os
 import fnmatch
 
+rule maxbin2:
+    input:
+        contig = "results/{sample}/megahit/final.contigs.fa",
+        abundance = "results/{sample}/pileup/{sample}_abundance.txt"
+    output:
+        folder = directory("results/{sample}/maxbin/"),
+        # files = "results/{sample}/maxbin/maxbin.{id_bins}.fasta",
+        listBins = "results/{sample}/maxbin/list_bins.txt"
+    conda:
+        "envs/maxbin.yaml"
+    # wildcard_constraints:
+    #     id_bins = "[0-9]",
+    shell:
+        """
+            /home/victor/storage/MaxBin-2.2.7/run_MaxBin.pl -min_contig_length 500 -thread {threads} -contig {input.contig} -out {output.folder}/maxbin -abund {input.abundance}
+            ls {output.folder}/*.fasta > {output.listBins}
+        """
+# ls {output.folder}/*.fasta > {output.listBins}
+# PREFIXES = [int(f.split(".")[1]) for f in glob_wildcards("results/M1/maxbin.{prefix}.fasta")]
 rule prokka_bin:
     input:
-        prokka = "results/bin/prokka/binaries/linux/tbl2asn",
-        # Obter nomes dos arquivos fasta do MaxBin2
-        BINS = lambda wildcards: fnmatch.filter(os.listdir("results/" + samples + "/maxbin/"), '*.fasta')
-    params:
-        outdir = "results/{sample}/prokka_bin/",
-        prefix = "{input.BINS}",
-        prokka = "results/bin/prokka/binaries/linux"
+        "results/{sample}/maxbin/"
+        # "results/{sample}/maxbin/list_bins.txt"
     output:
-        "results/{sample}/prokka/{sample}.gbk"
+        directory("results/{sample}/prokka_bin/")
     log:
         stdout = "results/{sample}/prokka_bin/log-stdout.txt",
         stderr = "results/{sample}/prokka_bin/log-stderr.txt"
-    output:
-        "/results/{sample}/prokka_bin/{input.BINS}"
+    params:
+        outdir = "results/{sample}/prokka_bin/",
+        prefix = "{sample}",
+        prokka = "results/bin/prokka/binaries/linux"
     threads:
         config["threads"]
     shell:
         """
-        export PATH={params.prokka}:$PATH
-        prokka --force --cpus {threads} --outdir {params.outdir} --prefix {params.prefix} {input.BINS} --centre X --compliant > {log.stdout} 2> {log.stderr}
+            export PATH={params.prokka}:$PATH
+            for file in {input}/*.fasta; do 
+                prefix=$(basename $file | cut -d '.' -f 2) 
+                prokka --force --cpus {threads} --outdir {params.outdir}/$prefix --prefix $prefix $file --centre X --compliant > {log.stdout} 2> {log.stderr}; 
+            done
         """
 
+# rule all:
+#     input: expand("prokka_output_{prefix}/output.gff", prefix=PREFIXES)
+
+# rule prokka:
+#     input: "results/M1/maxbin.{prefix}.fasta"
+#     output: "prokka_output_{prefix}/output.gff"
+#     shell:
+#         """
+#         prokka --outdir prokka_output_{wildcards.prefix} --prefix {wildcards.prefix} {input}
+#         """
+
+# PREFIXES = [int(f.split(".")[1]) for f in glob_wildcards("results/M1/maxbin.{prefix}.fasta")]
 
 # rule prokka_bin:
 #     input:
@@ -247,7 +277,7 @@ rule prokka_bin:
 #         "mv {input.fna_files}/*.fna {output.fna_files} && "
 #         "mv {input.faa_files}/*.faa {output.faa_files}"
 
-
+# for file in results/M1/maxbin/*.fasta; do IFS='.' read -a strarr <<<"$file" echo "Name : ${strarr[0]}"; done
 # rule prokkabin:
 #     input:
 #         # prokka = "results/bin/prokka",
@@ -278,67 +308,3 @@ rule prokka_bin:
 #         export PATH={params.prokka}:$PATH
 #         prokka --force --cpus {threads} --outdir {params.outdir} --prefix {params.prefix} {input.chromosome} --centre X --compliant > {log.stdout} 2> {log.stderr}
 #         """
-# rule metabat:
-#     input:
-#         contigs="contigs.fa",
-#         bam="leituras.bam"
-#     output:
-#         "binarios.fa"
-#     shell:
-#         "metabat2 -i contigs.fa -a leituras.bam -o binarios.fa"
-
-
-# Step 
-# rule extract:
-#     input:
-#         forward = lambda wildcards: os.path.abspath(config["samples"][wildcards.sample]["forward"]),
-#         revers = lambda wildcards: os.path.abspath(config["samples"][wildcards.sample]["revers"])
-#     output:
-#         forward = "results/{sample}/extract-file/{sample}_1.fastq",
-#         revers = "results/{sample}/extract-file/{sample}_2.fastq"
-#     conda:
-#         "envs/extract-file.yaml"
-#     benchmark:
-#         "results/{sample}/extract-file/benchmark.txt"
-#     shell:
-#         """
-#         ./scripts/extract-file.sh {input.forward} {output.forward}
-#         ./scripts/extract-file.sh {input.revers} {output.revers}
-#         """
-
-# rule mob_recon:
-#     input:
-#         "results/{sample}/cdhit/contigs.fasta"
-#     params:
-#         output = "results/{sample}/mob_recon"
-#     output:
-#         "results/{sample}/mob_recon/chromosome.fasta"
-#     log:
-#         stdout = "results/{sample}/mob_recon/log-stdout.txt",
-#         stderr = "results/{sample}/mob_recon/log-stderr.txt"
-#     conda:
-#         "envs/mobsuite.yaml"
-#     benchmark:
-#         "results/{sample}/mob_recon/benchmark.txt"
-#     threads:
-#         config["threads"]
-#     shell:
-#         """
-#         mob_recon --force -u -c -t -n {threads} -i {input} -o {params.output} > {log.stdout} 2> {log.stderr}
-#         """
-
-# rule filter_contigs:
-#     input:
-#         "results/{sample}/mob_recon/chromosome.fasta"
-#     output:
-#         "results/{sample}/mob_recon/chromosome_filtered.fasta"
-#     conda:
-#         "envs/filter_contigs.yaml"
-#     params:
-#         length = config['contigs']['minlength']
-#     shell:
-#         """
-#         ./scripts/filter_contigs.py {params.length} {input} {output}
-#         """
-
-# Cloning the prokka repository because tbl2asn in bioconda is old and throws errors
