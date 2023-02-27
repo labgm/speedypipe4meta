@@ -1,0 +1,49 @@
+Building DAG of jobs...
+Your conda installation is not configured to use strict channel priorities. This is however crucial for having robust and correct environments (for details, see https://conda-forge.org/docs/user/tipsandtricks.html). Please consider to configure strict priorities by executing 'conda config --set channel_priority strict'.
+Using shell: /bin/bash
+Provided cores: 64
+Rules claiming more threads will be scaled down.
+Job stats:
+job           count    min threads    max threads
+----------  -------  -------------  -------------
+all               1              1              1
+maxbin2           1              1              1
+prokka_bin        1             16             16
+total             3              1             16
+
+Select jobs to execute...
+
+[Sat Feb 25 15:53:43 2023]
+rule maxbin2:
+    input: results/M1/megahit/final.contigs.fa, results/M1/pileup/M1_abundance.txt
+    output: results/M1/maxbin, results/M1/maxbin/list_bins.txt
+    jobid: 2
+    reason: Missing output files: results/M1/maxbin/list_bins.txt
+    wildcards: sample=M1
+    resources: tmpdir=/tmp
+
+Skipped removing non-empty directory results/M1/maxbin
+Activating conda environment: .snakemake/conda/4e3c652eb1f0884dff60385860f576a5_
+[Sat Feb 25 15:53:44 2023]
+Error in rule maxbin2:
+    jobid: 2
+    input: results/M1/megahit/final.contigs.fa, results/M1/pileup/M1_abundance.txt
+    output: results/M1/maxbin, results/M1/maxbin/list_bins.txt
+    conda-env: /storage1/victor/speedypipe4meta/.snakemake/conda/4e3c652eb1f0884dff60385860f576a5_
+    shell:
+        
+            if test -d results/M1/maxbin; then
+                echo "O diretório existe"
+            else
+                mkdir results/M1/maxbin
+            /home/victor/storage/MaxBin-2.2.7/run_MaxBin.pl -min_contig_length 500 -thread 1 -contig results/M1/megahit/final.contigs.fa -out results/M1/maxbin/maxbin -abund results/M1/pileup/M1_abundance.txt
+            ls results/M1/maxbin/*.fasta > results/M1/maxbin/list_bins.txt
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job maxbin2 since they might be corrupted:
+results/M1/maxbin
+Skipped removing non-empty directory results/M1/maxbin
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2023-02-25T155340.136489.snakemake.log

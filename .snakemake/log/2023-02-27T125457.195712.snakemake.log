@@ -1,0 +1,4 @@
+AttributeError in file /storage1/victor/speedypipe4meta/Snakefile, line 225:
+'list' object has no attribute 'split'
+  File "/storage1/victor/speedypipe4meta/Snakefile", line 225, in <module>
+  File "/storage1/victor/speedypipe4meta/Snakefile", line 225, in <listcomp>

@@ -1,0 +1,4 @@
+The flag 'directory' used in rule prokka_bin is only valid for outputs, not inputs.
+Building DAG of jobs...
+Nothing to be done (all requested files are present and up to date).
+Complete log: .snakemake/log/2023-02-24T152144.788648.snakemake.log

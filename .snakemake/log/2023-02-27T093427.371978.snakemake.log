@@ -1,0 +1,31 @@
+Building DAG of jobs...
+Your conda installation is not configured to use strict channel priorities. This is however crucial for having robust and correct environments (for details, see https://conda-forge.org/docs/user/tipsandtricks.html). Please consider to configure strict priorities by executing 'conda config --set channel_priority strict'.
+Using shell: /bin/bash
+Provided cores: 64
+Rules claiming more threads will be scaled down.
+Job stats:
+job               count    min threads    max threads
+--------------  -------  -------------  -------------
+all                   1              1              1
+maxbin2               1              1              1
+pileup                1              1              1
+pileup_install        1              1              1
+prokka_bin            1             16             16
+total                 5              1             16
+
+Select jobs to execute...
+
+[Mon Feb 27 09:34:30 2023]
+rule pileup_install:
+    output: results/bin/bbmap/pileup.sh
+    jobid: 4
+    reason: Missing output files: results/bin/bbmap/pileup.sh
+    resources: tmpdir=/tmp
+
+Waiting at most 5 seconds for missing files.
+MissingOutputException in rule pileup_install in file /storage1/victor/speedypipe4meta/Snakefile, line 174:
+Job 4  completed successfully, but some output files are missing. Missing files after 5 seconds. This might be due to filesystem latency. If that is the case, consider to increase the wait time with --latency-wait:
+results/bin/bbmap/pileup.sh
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2023-02-27T093427.371978.snakemake.log

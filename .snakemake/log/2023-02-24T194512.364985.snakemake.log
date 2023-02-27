@@ -1,0 +1,4 @@
+Building DAG of jobs...
+WildcardError in rule all in file /storage1/victor/speedypipe4meta/Snakefile, line 7:
+Wildcards in input files cannot be determined from output files:
+'prefix'
