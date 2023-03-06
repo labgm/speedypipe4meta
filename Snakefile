@@ -4,9 +4,6 @@ configfile: "config.yaml"
 
 workdir: config["workdir"]
 
-wildcard_constraints:
-    bins_id = "\d{3}"
-
 rule all:
     input:
         fastqc_forward = ["results/" + sample + "/fastqc/" + sample + "_1_fastqc.html" for sample in config["samples"]],
@@ -16,8 +13,8 @@ rule all:
         # # trim_reverse_paired = ["results/" + sample + "/trimmomatic/" + sample + "_reverse_paired.fq.gz" for sample in config["samples"]],
         # # trim_reverse_unpaired = ["results/" + sample + "/trimmomatic/" + sample + "_reverse_unpaired.fq.gz" for sample in config["samples"]]
         # # scaffolds = ["results/" + sample + "/megahit/final.contigs.fa" for sample in config["samples"]]
-        # classification = ["results/" + sample + "/kraken/resultado.txt" for sample in config["samples"]],
-        # anotation = ["results/" + sample + "/prokka/" + sample + ".gbk" for sample in config["samples"]],
+        classification = ["results/" + sample + "/kraken/resultado.txt" for sample in config["samples"]],
+        anotation = ["results/" + sample + "/prokka/" + sample + ".gbk" for sample in config["samples"]],
         # # bowtie2 = ["results/" + sample + "/bowtie2/" + sample + ".sam"  for sample in config["samples"]],
         # abundance = ["results/" + sample + "/pileup/" + sample + "_abundance.txt"  for sample in config["samples"]],
         # binning = ["results/" + sample + "/maxbin/" for sample in config["samples"]]
@@ -120,10 +117,19 @@ rule install_prokka:
         "results/bin/prokka/binaries/linux/tbl2asn"
     conda:
         "envs/prokka.yaml"
+    params:
+        "results/bin/prokka/binaries/linux/"
     shell:
         """
         rm -rf results/bin/prokka
+        echo 'Baixando Prokka...'
         git clone https://github.com/tseemann/prokka.git results/bin/prokka > /dev/null 2> /dev/null
+        rm -f {output}
+        echo 'Baixando Pileup...'
+        wget https://ftp.ncbi.nih.gov/toolbox/ncbi_tools/converters/by_program/tbl2asn/linux64.tbl2asn.gz
+        gunzip -c linux64.tbl2asn.gz > tbl2asn
+        echo 'Baixando Pileup...'
+        mv -f tbl2asn {params}
         """
 
 rule prokka:
@@ -247,64 +253,3 @@ rule prokka_bin:
                 prokka --force --cpus {threads} --outdir {params.outdir}/$prefix --prefix $prefix $file --centre X --compliant > {log.stdout} 2> {log.stderr}; 
             done
         """
-
-# rule all:
-#     input: expand("prokka_output_{prefix}/output.gff", prefix=PREFIXES)
-
-# rule prokka:
-#     input: "results/M1/maxbin.{prefix}.fasta"
-#     output: "prokka_output_{prefix}/output.gff"
-#     shell:
-#         """
-#         prokka --outdir prokka_output_{wildcards.prefix} --prefix {wildcards.prefix} {input}
-#         """
-
-# PREFIXES = [int(f.split(".")[1]) for f in glob_wildcards("results/M1/maxbin.{prefix}.fasta")]
-
-# rule prokka_bin:
-#     input:
-#         fna_files = expand("results/{sample}/maxbin.{bin_id}.fasta", bin_id=BINS)
-#     output:
-#         gff_files = expand("results/{sample}/{bin_id}.gff", bin_id=BINS),
-#         fna_files = expand("results/{sample}/{bin_id}.fna", bin_id=BINS),
-#         faa_files = expand("results/{sample}/{bin_id}.faa", bin_id=BINS)
-#     params:
-#         prokka_args = "--kingdom Bacteria --outdir {PROKKA_OUTDIR}"
-#     threads: 4
-#     shell:
-#         "prokka --cpus {threads} {params.prokka_args} {input.fna_files} && "
-#         "mv {input.fna_files}/*.gff {output.gff_files} && "
-#         "mv {input.fna_files}/*.fna {output.fna_files} && "
-#         "mv {input.faa_files}/*.faa {output.faa_files}"
-
-# for file in results/M1/maxbin/*.fasta; do IFS='.' read -a strarr <<<"$file" echo "Name : ${strarr[0]}"; done
-# rule prokkabin:
-#     input:
-#         # prokka = "results/bin/prokka",
-#         prokka = "results/bin/prokka/binaries/linux/tbl2asn",
-#         # chromosome = "results/{sample}/mob_recon/chromosome.fasta"
-#         chromosome = "results/{sample}/megahit/final.contigs.fa"
-#     params:
-#         outdir = "results/{sample}/prokka",
-#         prefix = "{sample}",
-#         prokka = "results/bin/prokka/binaries/linux",
-#         # prokka2 = "results/bin/prokka/bin",
-#     output:
-#         "results/{sample}/prokka/{sample}.gbk"
-#     log:
-#         stdout = "results/{sample}/prokka/log-stdout.txt",
-#         stderr = "results/{sample}/prokka/log-stderr.txt"
-#     conda:
-#         "envs/prokka.yaml"
-#     benchmark:
-#         "results/{sample}/prokka/benchmark.txt"
-#     threads:
-#         config["threads"]
-#     shell:
-#         # """
-#         # prokka --force --cpus {threads} --outdir {params.outdir} --prefix {params.prefix} {input.chromosome} --centre X --compliant > {log.stdout} 2> {log.stderr}
-#         # """
-#         """
-#         export PATH={params.prokka}:$PATH
-#         prokka --force --cpus {threads} --outdir {params.outdir} --prefix {params.prefix} {input.chromosome} --centre X --compliant > {log.stdout} 2> {log.stderr}
-#         """
