@@ -22,7 +22,7 @@ if path.isdir(args.input_folder):
     config.write("    klist: '65'\n\n")
     config.write("# KRAKEN parameters\n")
     config.write("kraken:\n")
-    config.write("    db: 'minikraken2_v1_8GB'\n\n")
+    config.write("    db: '/usr/local/kraken2/db_standard'\n\n")
     config.write("samples:\n")
     forward = glob.iglob(args.input_folder + "/**/*_1.*", recursive=True)
     for f in forward:
