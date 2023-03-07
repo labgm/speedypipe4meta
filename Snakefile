@@ -4,6 +4,8 @@ configfile: "config.yaml"
 
 workdir: config["workdir"]
 
+timezone: 'America/Sao_Paulo'
+
 rule all:
     input:
         fastqc_forward = ["results/" + sample + "/fastqc/" + sample + "_1_fastqc.html" for sample in config["samples"]],
@@ -18,7 +20,7 @@ rule all:
         # # bowtie2 = ["results/" + sample + "/bowtie2/" + sample + ".sam"  for sample in config["samples"]],
         # abundance = ["results/" + sample + "/pileup/" + sample + "_abundance.txt"  for sample in config["samples"]],
         # binning = ["results/" + sample + "/maxbin/" for sample in config["samples"]]
-        prokka_bin = ["results/" + sample + "/prokka_bin/" for sample in config["samples"]]
+        anotation_bin = ["results/" + sample + "/prokka_bin/" for sample in config["samples"]]
         
 
 
