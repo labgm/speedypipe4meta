@@ -1,6 +1,6 @@
-channels:
- - anaconda
+channels: 
+ - conda-forge
  - bioconda
+ - defaults
 dependencies:
- - git
  - prokka

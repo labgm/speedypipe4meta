@@ -1,6 +1,0 @@
-MaxBin 2.2.7
-Min contig length: 500
-Thread: 16
-Input contig: /home/victor/storage/speedypipe4meta/results/M1/Teste/final.contigs.fa
-out header: /home/victor/storage/speedypipe4meta/results/maxbin/maxbin
-Located abundance file [/home/victor/storage/speedypipe4meta/results/M1/Teste/M1_abundance.txt]

@@ -114,34 +114,34 @@ rule kraken:
 # Step 5 (Anotação Contings)
 # Cloning the prokka repository because tbl2asn in bioconda is old and throws errors
 # https://ftp.ncbi.nih.gov/toolbox/ncbi_tools/converters/by_program/tbl2asn/linux64.tbl2asn.gz
-rule install_prokka:
-    output:
-        "results/bin/prokka/binaries/linux/tbl2asn"
-    conda:
-        "envs/prokka.yaml"
-    params:
-        "results/bin/prokka/binaries/linux/"
-    shell:
-        """
-        rm -rf results/bin/prokka
-        echo 'Baixando Prokka...'
-        git clone https://github.com/tseemann/prokka.git results/bin/prokka > /dev/null 2> /dev/null
-        rm -f {output}
-        echo 'Baixando Pileup...'
-        wget https://ftp.ncbi.nih.gov/toolbox/ncbi_tools/converters/by_program/tbl2asn/linux64.tbl2asn.gz
-        gunzip -c linux64.tbl2asn.gz > tbl2asn
-        echo 'Baixando Pileup...'
-        mv -f tbl2asn {params}
-        """
+# rule install_prokka:
+#     output:
+#         "results/bin/prokka/binaries/linux/tbl2asn"
+#     conda:
+#         "envs/prokka.yaml"
+#     params:
+#         "results/bin/prokka/binaries/linux/"
+#     shell:
+#         """
+#         rm -rf results/bin/prokka
+#         echo 'Baixando Prokka...'
+#         git clone https://github.com/tseemann/prokka.git results/bin/prokka > /dev/null 2> /dev/null
+#         rm -f {output}
+#         echo 'Baixando Pileup...'
+#         wget https://ftp.ncbi.nih.gov/toolbox/ncbi_tools/converters/by_program/tbl2asn/linux64.tbl2asn.gz
+#         gunzip -c linux64.tbl2asn.gz > tbl2asn
+#         echo 'Baixando Pileup...'
+#         mv -f tbl2asn {params}
+#         """
 
 rule prokka:
     input:
-        prokka = "results/bin/prokka/binaries/linux/tbl2asn",
+        # prokka = "results/bin/prokka/binaries/linux/tbl2asn",
         fasta = "results/{sample}/megahit/final.contigs.fa"
     params:
         outdir = "results/{sample}/prokka",
         prefix = "{sample}",
-        prokka = "results/bin/prokka/binaries/linux"
+        # prokka = "results/bin/prokka/binaries/linux"
     output:
         "results/{sample}/prokka/{sample}.gbk"
     log:
@@ -155,10 +155,10 @@ rule prokka:
         config["threads"]
     shell:
         # """
+        # export PATH={params.prokka}:$PATH
         # prokka --force --cpus {threads} --outdir {params.outdir} --prefix {params.prefix} {input.fasta} --centre X --compliant > {log.stdout} 2> {log.stderr}
         # """
         """
-        export PATH={params.prokka}:$PATH
         prokka --force --cpus {threads} --outdir {params.outdir} --prefix {params.prefix} {input.fasta} --centre X --compliant > {log.stdout} 2> {log.stderr}
         """
 # Step 6 (Anotação Contings)
@@ -206,7 +206,7 @@ rule pileup:
         var = "{print $1\"\t\"$5}"
     shell:
         """
-            {input.pileup} -Xmx1G in={input.sam} out={output.coverage}
+            {input.pileup} -Xmx5G in={input.sam} out={output.coverage}
             awk '{params.var}' {output.coverage} | grep -v '^#'> {output.abundance}
         """
 
@@ -227,7 +227,7 @@ rule maxbin2:
     #     id_bins = "[0-9]",
     shell:
         """
-            /home/victor/storage/MaxBin-2.2.7/run_MaxBin.pl -min_contig_length 500 -thread {threads} -contig {input.contig} -out {output.folder}/maxbin -abund {input.abundance}
+            /home/victor/storage/MaxBin-2.2.7/run_MaxBin.pl -min_contig_length 300 -thread {threads} -contig {input.contig} -out {output.folder}/maxbin -abund {input.abundance}
             ls {output.folder}/*.fasta > {output.listBins}
         """
 # ls {output.folder}/*.fasta > {output.listBins}
