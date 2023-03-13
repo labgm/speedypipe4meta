@@ -94,22 +94,26 @@ rule megahit:
         config["threads"]
     shell:
         """
-            megahit -f -1 {input[0]} -2 {input[1]} -t {threads} --k-list {params.klist} -o {params.output}
+            megahit -f -1 {input[0]} -2 {input[1]} -t {threads} --presets mega -o {params.output}
         """
         # megahit -1 {input[0]}  -2 {input[1]}  -t {threads} -m {resources.mem_gb} -o {params.output} (Ver com o professor)
 
 # Step 4 (Classificação)
 rule kraken:
     input:
-        "results/{sample}/megahit/final.contigs.fa"
+        forward = "results/{sample}/trimmomatic/{sample}_forward_paired.fq.gz",
+        revers = "results/{sample}/trimmomatic/{sample}_reverse_paired.fq.gz"
     output:
         "results/{sample}/kraken/resultado.txt"
+    log:
+        stdout = "results/{sample}/kraken/log-stdout.txt",
+        stderr = "results/{sample}/kraken/log-stderr.txt"
     params:
         db = config["kraken"]['db']
     threads:
         config["threads"]
     shell:
-        "kraken2 --db {params.db} --threads {threads} --report {output} {input}"
+        "kraken2 --db {params.db} --threads {threads} --paired {input.forward} {input.revers} --report {output} > {log.stdout} 2> {log.stderr}"
 
 # Step 5 (Anotação Contings)
 # Cloning the prokka repository because tbl2asn in bioconda is old and throws errors
@@ -169,14 +173,14 @@ rule bowtie2:
         revers = "results/{sample}/trimmomatic/{sample}_reverse_paired.fq.gz"
     output:
         sam = "results/{sample}/bowtie2/{sample}.sam",
-        # db = "results/{sample}/bowtie2/"
+        db = "results/{sample}/bowtie2/"
     params:
         db = "{sample}db"
     threads:
         config["threads"]
     shell:
         """
-            bowtie2-build -f {input.contig} {params.db}
+            bowtie2-build -f {input.contig} {output.db}/{params.db}
             bowtie2 -x {params.db} -1 {input.forward} -2 {input.revers} --no-unal -p {threads} -S {output.sam} 
         """
 # https://sourceforge.net/projects/bbmap/files/latest/download
