@@ -173,7 +173,7 @@ rule bowtie2:
         revers = "results/{sample}/trimmomatic/{sample}_reverse_paired.fq.gz"
     output:
         sam = "results/{sample}/bowtie2/{sample}.sam",
-        db = "results/{sample}/bowtie2/"
+        db = directory("results/{sample}/bowtie2/")
     params:
         db = "{sample}db"
     threads:
