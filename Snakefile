@@ -94,7 +94,7 @@ rule megahit:
         config["threads"]
     shell:
         """
-            megahit -f -1 {input[0]} -2 {input[1]} -t {threads} --presets meta-large -o {params.output}
+            megahit -f -1 {input[0]} -2 {input[1]} -t {threads} --presets meta-large -o {params.output} --min-contig-len 300
         """
         # megahit -1 {input[0]}  -2 {input[1]}  -t {threads} -m {resources.mem_gb} -o {params.output} (Ver com o professor)
 
