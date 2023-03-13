@@ -181,7 +181,7 @@ rule bowtie2:
     shell:
         """
             bowtie2-build -f {input.contig} {output.db}/{params.db}
-            bowtie2 -x {params.db} -1 {input.forward} -2 {input.revers} --no-unal -p {threads} -S {output.sam} 
+            bowtie2 -x  {output.db}/{params.db} -1 {input.forward} -2 {input.revers} --no-unal -p {threads} -S {output.sam} 
         """
 # https://sourceforge.net/projects/bbmap/files/latest/download
 rule pileup_install:
