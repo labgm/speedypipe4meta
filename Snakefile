@@ -8,20 +8,13 @@ timezone: 'America/Sao_Paulo'
 
 rule all:
     input:
-        fastqc_forward = ["results/" + sample + "/fastqc/" + sample + "_1_fastqc.html" for sample in config["samples"]],
-        fastqc_revers = ["results/" + sample + "/fastqc/" + sample + "_2_fastqc.html" for sample in config["samples"]],
-        # # trim_forward_paired = ["results/" + sample + "/trimmomatic/" + sample + "_forward_paired.fq.gz" for sample in config["samples"]],
-        # # trim_forward_unpaired = ["results/" + sample + "/trimmomatic/" + sample + "_forward_unpaired.fq.gz" for sample in config["samples"]],
-        # # trim_reverse_paired = ["results/" + sample + "/trimmomatic/" + sample + "_reverse_paired.fq.gz" for sample in config["samples"]],
-        # # trim_reverse_unpaired = ["results/" + sample + "/trimmomatic/" + sample + "_reverse_unpaired.fq.gz" for sample in config["samples"]]
-        # # scaffolds = ["results/" + sample + "/megahit/final.contigs.fa" for sample in config["samples"]]
-        classification = ["results/" + sample + "/kraken/resultado.txt" for sample in config["samples"]],
-        anotation = ["results/" + sample + "/prokka/" + sample + ".gbk" for sample in config["samples"]],
-        # # bowtie2 = ["results/" + sample + "/bowtie2/" + sample + ".sam"  for sample in config["samples"]],
-        # abundance = ["results/" + sample + "/pileup/" + sample + "_abundance.txt"  for sample in config["samples"]],
-        # binning = ["results/" + sample + "/maxbin/" for sample in config["samples"]]
-        anotation_bin = ["results/" + sample + "/prokka_bin/" for sample in config["samples"]]
-        
+        # fastqc_forward = ["results/" + sample + "/fastqc/" + sample + "_1_fastqc.html" for sample in config["samples"]],
+        # fastqc_revers = ["results/" + sample + "/fastqc/" + sample + "_2_fastqc.html" for sample in config["samples"]],
+        # classification = ["results/" + sample + "/kraken/" + sample + "_report.html" for sample in config["samples"]],
+        # anotation = ["results/" + sample + "/prokka/" + sample + ".gbk" for sample in config["samples"]],
+        # anotation_bin = ["results/" + sample + "/prokka_bin/" for sample in config["samples"]],
+        # megares = ["results/" + sample + "/MEGARes/" for sample in config["samples"]],
+        quast = ["results/" + sample + "/metaquast/report.txt" for sample in config["samples"]]
 
 
 # TODO: remember to remove files extracted at the end of the pipeline
@@ -62,7 +55,7 @@ rule trimmomatic:
         config["threads"]
     shell:
         """
-        TrimmomaticPE \
+        trimmomatic PE \
             -threads {threads} \
             {input[0]} {input[1]} \
             {output[0]} {output[1]} \
@@ -78,12 +71,12 @@ rule megahit:
         revers = "results/{sample}/trimmomatic/{sample}_reverse_paired.fq.gz"
     params:
         klist = config["megahit"]['klist'],
-        output = "results/{sample}/megahit"
+        output = "results/{sample}/assembly/megahit"
     output:
-        "results/{sample}/megahit/final.contigs.fa"
+        "results/{sample}/assembly/megahit/final.contigs.fa"
     log:
-        stdout = "results/{sample}/megahit/log-stdout.txt",
-        stderr = "results/{sample}/megahit/log-stderr.txt"
+        stdout = "results/{sample}/assembly/megahit/log-stdout.txt",
+        stderr = "results/{sample}/assembly/megahit/log-stderr.txt"
     conda:
         "envs/megahit.yaml"
     # benchmark:
@@ -98,13 +91,102 @@ rule megahit:
         """
         # megahit -1 {input[0]}  -2 {input[1]}  -t {threads} -m {resources.mem_gb} -o {params.output} (Ver com o professor)
 
+# Step 3: Assembly MetaSPAdes
+rule metaspades:
+    input:
+        forward = "results/{sample}/trimmomatic/{sample}_forward_paired.fq.gz",
+        revers = "results/{sample}/trimmomatic/{sample}_reverse_paired.fq.gz"
+    output:
+        "results/{sample}/assembly/metaspades/scaffolds.fasta"
+    params:
+        klist = "27,37,47,57,67,77,87,97,107,117,127",
+        output = "results/{sample}/assembly/metaspades"
+    log:
+        stdout = "results/{sample}/assembly/metaspades/log-stdout.txt",
+        stderr = "results/{sample}/assembly/metaspades/log-stderr.txt"
+    # conda:
+    #     "envs/metaspades.yaml"
+    resources:
+        mem_gb = 100
+    threads:
+        config["threads"]
+    shell:
+        """
+            metaspades.py -o {params.output} -1 {input.forward} -2 {input.revers} -k {params.klist} --threads {threads} --memory {resources.mem_gb}
+        """
+        # -k {config["metaspades"]["kmer_sizes"]}
+# Step 3: Assembly IDBA-UD
+rule pre_idba:
+    input:
+        forward = "results/{sample}/trimmomatic/{sample}_forward_paired.fq.gz",
+        revers = "results/{sample}/trimmomatic/{sample}_reverse_paired.fq.gz"
+    output:
+        forward = "results/{sample}/trimmomatic/{sample}_forward_paired.fq",
+        revers = "results/{sample}/trimmomatic/{sample}_reverse_paired.fq"
+    shell:
+        """
+            gzip -dk {input.forward} {input.revers}
+        """
+
+rule fq2fa:
+    input:
+        forward = "results/{sample}/trimmomatic/{sample}_forward_paired.fq",
+        revers = "results/{sample}/trimmomatic/{sample}_reverse_paired.fq"
+    output:
+        "results/{sample}/assembly/idba/{sample}_1_2.fa"
+    shell: 
+        """
+            fq2fa --merge {input.forward} {input.revers} {output}
+        """
+
+rule idba:
+    input:
+        "results/{sample}/assembly/idba/{sample}_1_2.fa"
+    output:
+        "results/{sample}/assembly/idba/scaffold.fa"
+    params:
+        outdir = "results/{sample}/assembly/idba",
+    log:
+        stdout = "results/{sample}/assembly/idba/log-stdout.txt",
+        stderr = "results/{sample}/assembly/idba/log-stderr.txt"
+    # conda:
+        # "envs/idba.yaml"
+    resources:
+        mem_gb = 100
+    threads:
+        config["threads"]
+    shell:
+        """
+            idba_ud -r {input} -o {params.outdir} --mink 27 --step 10 --maxk 127 --num_threads {threads}
+        """
+            #idba_ud -r {input.forward} -l {input.revers} -o {output} --num_threads {threads} --mink {config["idba"]["min_kmer_size"]} --maxk {config["idba"]["max_kmer_size"]} --step {config["idba"]["kmer_step"]} --pre_correction --no_correct --min_contig {config["idba"]["min_contig_length"]}
+            # fq2fa --merge F1_forward_paired.fq F1_reverse_paired.fq F1_1_2.fa
+# Step 3 Quast Analysis
+rule metaquast:
+    input: 
+        megahit = "results/{sample}/assembly/megahit/final.contigs.fa",
+        metaspades = "results/{sample}/assembly/metaspades/scaffolds.fasta",
+        idba = "results/{sample}/assembly/idba/scaffold.fa"
+    output:
+        "results/{sample}/metaquast/report.txt"
+    params:
+        outdir = "results/{sample}/metaquast"
+    shell:
+        """
+            metaquast.py -o {params.outdir} {input.megahit} {input.metaspades} {input.idba} -l Megahit,Spades,Idba
+        """
+
+
 # Step 4 (Classificação)
 rule kraken:
     input:
         forward = "results/{sample}/trimmomatic/{sample}_forward_paired.fq.gz",
         revers = "results/{sample}/trimmomatic/{sample}_reverse_paired.fq.gz"
     output:
-        "results/{sample}/kraken/resultado.txt"
+        report_kraken = "results/{sample}/kraken/{sample}_report.txt",
+        report_krona = "results/{sample}/kraken/{sample}_report.krona",
+        report_html = "results/{sample}/kraken/{sample}_report.html",
+        
     log:
         stdout = "results/{sample}/kraken/log-stdout.txt",
         stderr = "results/{sample}/kraken/log-stderr.txt"
@@ -113,7 +195,11 @@ rule kraken:
     threads:
         config["threads"]
     shell:
-        "kraken2 --db {params.db} --threads {threads} --paired {input.forward} {input.revers} --report {output} > {log.stdout} 2> {log.stderr}"
+        """
+            kraken2 --db {params.db} --threads {threads} --paired {input.forward} {input.revers} --report {output.report_kraken} > {log.stdout} 2> {log.stderr}
+            kreport2krona.py -r {output.report_kraken} -o {output.report_krona}
+            ktImportText {output.report_krona} -o {output.report_html}
+        """
 
 # Step 5 (Anotação Contings)
 # Cloning the prokka repository because tbl2asn in bioconda is old and throws errors
@@ -258,4 +344,14 @@ rule prokka_bin:
                 prefix=$(basename $file | cut -d '.' -f 2) 
                 prokka --force --cpus {threads} --outdir {params.outdir}/$prefix --prefix $prefix $file --centre X --compliant > {log.stdout} 2> {log.stderr}; 
             done
+        """
+
+rule megares:
+    input:
+        'amrplusplus_v2/main_AmrPlusPlus_v2_withRGI.nf'
+    output:
+        directory("results/{sample}/MEGARes/")
+    shell:
+        """
+            nextflow run {input}  -profile singularity --output {output} -resume
         """
