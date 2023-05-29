@@ -168,12 +168,12 @@ rule metaquast:
         metaspades = "results/{sample}/assembly/metaspades/scaffolds.fasta",
         idba = "results/{sample}/assembly/idba/scaffold.fa"
     output:
-        "results/{sample}/metaquast/report.txt"
+        "results/{sample}/metaquast/report.html"
     params:
         outdir = "results/{sample}/metaquast"
     shell:
         """
-            metaquast.py -o {params.outdir} {input.megahit} {input.metaspades} {input.idba} -l Megahit,Spades,Idba
+            metaquast.py -o {params.outdir} {input.megahit} {input.metaspades} {input.idba} -l Megahit,SPades,Idba
         """
 
 
