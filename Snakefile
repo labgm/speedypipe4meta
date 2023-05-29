@@ -14,8 +14,8 @@ rule all:
         # anotation = ["results/" + sample + "/prokka/" + sample + ".gbk" for sample in config["samples"]],
         # anotation_bin = ["results/" + sample + "/prokka_bin/" for sample in config["samples"]],
         # megares = ["results/" + sample + "/MEGARes/" for sample in config["samples"]],
-        quast = ["results/" + sample + "/metaquast/report.txt" for sample in config["samples"]]
-
+        # metaquast = ["results/" + sample + "/metaquast/combined_reference/report.tsv" for sample in config["samples"]]
+        best_assembly = ["results/" + sample + "/assembly/best_assembly" for sample in config["samples"]]
 
 # TODO: remember to remove files extracted at the end of the pipeline
 
@@ -168,7 +168,7 @@ rule metaquast:
         metaspades = "results/{sample}/assembly/metaspades/scaffolds.fasta",
         idba = "results/{sample}/assembly/idba/scaffold.fa"
     output:
-        "results/{sample}/metaquast/report.html"
+        "results/{sample}/metaquast/combined_reference/report.tsv"
     params:
         outdir = "results/{sample}/metaquast"
     shell:
@@ -176,6 +176,15 @@ rule metaquast:
             metaquast.py -o {params.outdir} {input.megahit} {input.metaspades} {input.idba} -l Megahit,SPades,Idba
         """
 
+rule best_assembly:
+    input:
+        "results/{sample}/metaquast/combined_reference/report.tsv"
+    output:
+        directory("results/{sample}/assembly/best_assembly")
+    shell:
+        """
+            python scripts/best_assembly.py --input {input}
+        """
 
 # Step 4 (Classificação)
 rule kraken:

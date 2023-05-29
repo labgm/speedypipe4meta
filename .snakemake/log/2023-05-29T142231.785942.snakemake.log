@@ -1,0 +1,8 @@
+Building DAG of jobs...
+MissingInputException in rule trimmomatic in file /storage1/victor/speedypipe4meta/Snakefile, line 45:
+Missing input files for rule trimmomatic:
+    output: results/M1/trimmomatic/M1_forward_paired.fq.gz, results/M1/trimmomatic/M1_forward_unpaired.fq.gz, results/M1/trimmomatic/M1_reverse_paired.fq.gz, results/M1/trimmomatic/M1_reverse_unpaired.fq.gz
+    wildcards: sample=M1
+    affected files:
+        /storage1/victor/speedypipe4meta/data/M1_1.fq.gz
+        /storage1/victor/speedypipe4meta/data/M1_2.fq.gz
