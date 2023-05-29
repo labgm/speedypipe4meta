@@ -39,7 +39,6 @@ def L50():
         colocacao += 1
         score -= 1
 
-
 def contigs():
     alist.sort(key=lambda x: x.contigs, reverse=False)
     colocacao = 1
@@ -110,8 +109,16 @@ alist.sort(key=lambda x: x.score, reverse=True)
 
 # if(os.path.isdir(alist[0].nome)):
 print('Melhor montagem: ', alist[0].nome.upper())
-# print('Compiando arquivos...')
-# subprocess.run("cp "+ alist[0].nome + "/* best_assembly", shell=True)
-# print('Arquivos copiados!')
-# else:
-# print("O não diretório existe!")
+best_assembly = alist[0].nome.upper()
+
+path = args.input.replace('/metaquast/combined_reference/report.tsv','')
+os.mkdir(f'{path}/assembly/best_assembly')
+if best_assembly == 'IDBA':
+    os.system(f'cp {path}/assembly/idba/scaffold.fa {path}/assembly/best_assembly/final.contigs.fa')
+    print('Melhor montagem é o IDBA')
+if best_assembly == 'SPADES':
+    os.system(f'cp {path}/assembly/metaspades/scaffolds.fasta {path}/assembly/best_assembly/final.contigs.fa')
+    print('Melhor montagem é o SPADES')     
+if best_assembly == 'MEGAHIT':
+    print('Melhor montagem é o MEGAHIT')
+    os.system(f'cp {path}/assembly/megahit/final.contigs.fa {path}/assembly/best_assembly/final.contigs.fa')
