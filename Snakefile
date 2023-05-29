@@ -180,7 +180,8 @@ rule best_assembly:
     input:
         "results/{sample}/metaquast/combined_reference/report.tsv"
     output:
-        directory("results/{sample}/assembly/best_assembly")
+        directory("results/{sample}/assembly/best_assembly"),
+        "results/{sample}/assembly/best_assembly/final.contigs.fa"
     params:
         "results/{sample}/assembly/final.contigs.fa"
     shell:
