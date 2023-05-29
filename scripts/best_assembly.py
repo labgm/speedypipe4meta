@@ -17,7 +17,6 @@ args = parser.parse_args()
 
 
 alist = read_file(args.input)
-print(alist)
 
 def N50():
     alist.sort(key=lambda x: x.n50, reverse=True)
