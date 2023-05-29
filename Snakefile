@@ -8,13 +8,13 @@ timezone: 'America/Sao_Paulo'
 
 rule all:
     input:
-        # fastqc_forward = ["results/" + sample + "/fastqc/" + sample + "_1_fastqc.html" for sample in config["samples"]],
-        # fastqc_revers = ["results/" + sample + "/fastqc/" + sample + "_2_fastqc.html" for sample in config["samples"]],
-        # classification = ["results/" + sample + "/kraken/" + sample + "_report.html" for sample in config["samples"]],
-        # anotation = ["results/" + sample + "/prokka/" + sample + ".gbk" for sample in config["samples"]],
-        # anotation_bin = ["results/" + sample + "/prokka_bin/" for sample in config["samples"]],
+        fastqc_forward = ["results/" + sample + "/fastqc/" + sample + "_1_fastqc.html" for sample in config["samples"]],
+        fastqc_revers = ["results/" + sample + "/fastqc/" + sample + "_2_fastqc.html" for sample in config["samples"]],
+        classification = ["results/" + sample + "/kraken/" + sample + "_report.html" for sample in config["samples"]],
+        anotation = ["results/" + sample + "/prokka/" + sample + ".gbk" for sample in config["samples"]],
+        anotation_bin = ["results/" + sample + "/prokka_bin/" for sample in config["samples"]],
         # megares = ["results/" + sample + "/MEGARes/" for sample in config["samples"]],
-        # metaquast = ["results/" + sample + "/metaquast/combined_reference/report.tsv" for sample in config["samples"]]
+        metaquast = ["results/" + sample + "/metaquast/combined_reference/report.tsv" for sample in config["samples"]],
         best_assembly = ["results/" + sample + "/assembly/best_assembly" for sample in config["samples"]]
 
 # TODO: remember to remove files extracted at the end of the pipeline
@@ -181,9 +181,12 @@ rule best_assembly:
         "results/{sample}/metaquast/combined_reference/report.tsv"
     output:
         directory("results/{sample}/assembly/best_assembly")
+    params:
+        "results/{sample}/assembly/final.contigs.fa"
     shell:
         """
             python scripts/best_assembly.py --input {input}
+            
         """
 
 # Step 4 (Classificação)
@@ -209,29 +212,6 @@ rule kraken:
             kreport2krona.py -r {output.report_kraken} -o {output.report_krona}
             ktImportText {output.report_krona} -o {output.report_html}
         """
-
-# Step 5 (Anotação Contings)
-# Cloning the prokka repository because tbl2asn in bioconda is old and throws errors
-# https://ftp.ncbi.nih.gov/toolbox/ncbi_tools/converters/by_program/tbl2asn/linux64.tbl2asn.gz
-# rule install_prokka:
-#     output:
-#         "results/bin/prokka/binaries/linux/tbl2asn"
-#     conda:
-#         "envs/prokka.yaml"
-#     params:
-#         "results/bin/prokka/binaries/linux/"
-#     shell:
-#         """
-#         rm -rf results/bin/prokka
-#         echo 'Baixando Prokka...'
-#         git clone https://github.com/tseemann/prokka.git results/bin/prokka > /dev/null 2> /dev/null
-#         rm -f {output}
-#         echo 'Baixando Pileup...'
-#         wget https://ftp.ncbi.nih.gov/toolbox/ncbi_tools/converters/by_program/tbl2asn/linux64.tbl2asn.gz
-#         gunzip -c linux64.tbl2asn.gz > tbl2asn
-#         echo 'Baixando Pileup...'
-#         mv -f tbl2asn {params}
-#         """
 
 rule prokka:
     input:
