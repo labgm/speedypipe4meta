@@ -216,7 +216,7 @@ rule kraken:
 rule prokka:
     input:
         # prokka = "results/bin/prokka/binaries/linux/tbl2asn",
-        fasta = "results/{sample}/megahit/final.contigs.fa"
+        fasta = "results/{sample}/assembly/best_assembly/final.contigs.fa"
     params:
         outdir = "results/{sample}/prokka",
         prefix = "{sample}",
@@ -243,7 +243,7 @@ rule prokka:
 # Step 6 (Anotação Contings)
 rule bowtie2:
     input:
-        contig = "results/{sample}/megahit/final.contigs.fa",
+        contig = "results/{sample}/assembly/best_assembly/final.contigs.fa",
         forward = "results/{sample}/trimmomatic/{sample}_forward_paired.fq.gz",
         revers = "results/{sample}/trimmomatic/{sample}_reverse_paired.fq.gz"
     output:
@@ -294,7 +294,7 @@ import fnmatch
 
 rule maxbin2:
     input:
-        contig = "results/{sample}/megahit/final.contigs.fa",
+        contig = "results/{sample}/assembly/best_assembly/final.contigs.fa",
         abundance = "results/{sample}/pileup/{sample}_abundance.txt"
     output:
         folder = directory("results/{sample}/maxbin/"),
