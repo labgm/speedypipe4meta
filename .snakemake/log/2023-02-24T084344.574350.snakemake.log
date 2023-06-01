@@ -1,3 +1,0 @@
-FileNotFoundError in file /storage1/victor/speedypipe4meta/Snakefile, line 220:
-[Errno 2] No such file or directory: 'results/{sample}/maxbin/'
-  File "/storage1/victor/speedypipe4meta/Snakefile", line 220, in <module>

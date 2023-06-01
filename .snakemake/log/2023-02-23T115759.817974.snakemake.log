@@ -1,5 +1,0 @@
-Building DAG of jobs...
-MissingInputException in rule all in file /storage1/victor/speedypipe4meta/Snakefile, line 5:
-Missing input files for rule all:
-    affected files:
-        results/M1/maxbin2

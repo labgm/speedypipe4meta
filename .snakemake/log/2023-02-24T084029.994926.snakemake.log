@@ -1,3 +1,0 @@
-NameError in file /storage1/victor/speedypipe4meta/Snakefile, line 223:
-name 'fnmatch' is not defined
-  File "/storage1/victor/speedypipe4meta/Snakefile", line 223, in <module>

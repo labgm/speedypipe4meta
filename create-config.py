@@ -35,6 +35,9 @@ if path.isdir(args.input_folder):
     config.write("\n# Mininum length of contigs\n")
     config.write("contigs:\n")
     config.write("    minlength: 200\n")
+    config.write("DB:\n")
+    config.write("    MEGARES_ANN: 'https://www.meglab.org/downloads/megares_v3.00/megares_annotations_v3.00.csv'\n")
+    config.write("    MEGARES_FASTA: 'https://www.meglab.org/downloads/megares_v3.00/megares_database_v3.00.fasta'\n")
     config.close()
 else:
     print("Please provide a folder containing FASTQ files")

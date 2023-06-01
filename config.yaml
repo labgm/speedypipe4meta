@@ -1,6 +1,6 @@
 workdir: /storage1/victor/speedypipe4meta
 
-threads: 16
+threads: 4
 mem_mb: 256000
 
 # MEGAHIT parameters
@@ -12,10 +12,13 @@ kraken:
     db: '/usr/local/kraken2/db_standard'
 
 samples:
-    'M1':
-        forward: 'data/M1_1.fq.gz'
-        revers: 'data/M1_2.fq.gz'
+    'S1_test':
+        forward: 'data/S1_test_1.fastq.gz'
+        revers: 'data/S1_test_2.fastq.gz'
 
 # Mininum length of contigs
 contigs:
     minlength: 200
+DB:
+    MEGARES_ANN: 'https://www.meglab.org/downloads/megares_v3.00/megares_annotations_v3.00.csv'
+    MEGARES_FASTA: 'https://www.meglab.org/downloads/megares_v3.00/megares_database_v3.00.fasta'

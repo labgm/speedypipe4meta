@@ -336,6 +336,19 @@ rule prokka_bin:
             done
         """
 
+rule get_megares:
+    output:
+        megares_ann = "amr/megares_annotations.csv",
+        megares_fasta = "amr/megares.fasta"
+    params:
+        ann_link = config["DB"]["MEGARES_ANN"],
+        fasta_link = config["DB"]["MEGARES_FASTA"]
+    conda:
+        "envs/megares.yaml"
+    shell:
+        "wget -O {output.megares_ann} {params.ann_link}; "
+        "wget -O {output.megares_fasta} {params.fasta_link}"
+
 rule megares:
     input:
         'amrplusplus_v2/main_AmrPlusPlus_v2_withRGI.nf'
@@ -343,5 +356,5 @@ rule megares:
         directory("results/{sample}/MEGARes/")
     shell:
         """
-            nextflow run {input}  -profile singularity --output {output} -resume
+            nextflow run {input} --pipeline standard_AMR -profile singularity --output {output} -resume
         """
