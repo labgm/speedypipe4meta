@@ -1,0 +1,25 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 64
+Rules claiming more threads will be scaled down.
+Conda environments: ignored
+Job stats:
+job                count    min threads    max threads
+---------------  -------  -------------  -------------
+build_amr_index        1              1              1
+total                  1              1              1
+
+Select jobs to execute...
+
+[Thu Jun  1 13:52:32 2023]
+rule build_amr_index:
+    input: amr/megares.fasta
+    output: amr/megares.fasta.amb, amr/megares.fasta.ann, amr/megares.fasta.bwt, amr/megares.fasta.pac, amr/megares.fasta.sa
+    jobid: 0
+    reason: Missing output files: amr/megares.fasta.ann, amr/megares.fasta.sa, amr/megares.fasta.bwt, amr/megares.fasta.amb, amr/megares.fasta.pac
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 13:52:38 2023]
+Finished job 0.
+1 of 1 steps (100%) done
+Complete log: .snakemake/log/2023-06-01T135231.474405.snakemake.log

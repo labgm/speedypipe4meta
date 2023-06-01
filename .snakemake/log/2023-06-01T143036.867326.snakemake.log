@@ -1,0 +1,307 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 64
+Rules claiming more threads will be scaled down.
+Conda environments: ignored
+Job stats:
+job                  count    min threads    max threads
+-----------------  -------  -------------  -------------
+align_to_amr             1              4              4
+all                      1              1              1
+best_assembly            1              1              1
+bowtie2                  1              4              4
+fastqc                   1              4              4
+fq2fa                    1              1              1
+idba                     1              4              4
+kraken                   1              4              4
+maxbin2                  1              1              1
+megahit                  1              4              4
+metaquast                1              1              1
+metaspades               1              4              4
+pileup                   1              1              1
+pre_idba                 1              1              1
+prokka                   1              4              4
+prokka_bin               1              4              4
+resistome_results        1              1              1
+run_resistome            1              1              1
+trimmomatic              1              4              4
+total                   19              1              4
+
+Select jobs to execute...
+
+[Thu Jun  1 14:30:38 2023]
+rule fastqc:
+    input: /storage1/victor/speedypipe4meta/data/F1_1.fq.gz, /storage1/victor/speedypipe4meta/data/F1_2.fq.gz
+    output: results/F1/fastqc/F1_1_fastqc.html, results/F1/fastqc/F1_2_fastqc.html
+    log: results/F1/fastqc/log-stdout.txt, results/F1/fastqc/log-stderr.txt
+    jobid: 1
+    benchmark: results/F1/fastqc/benchmark.txt
+    reason: Missing output files: results/F1/fastqc/F1_1_fastqc.html, results/F1/fastqc/F1_2_fastqc.html
+    wildcards: sample=F1
+    threads: 4
+    resources: tmpdir=/tmp
+
+
+[Thu Jun  1 14:30:38 2023]
+rule trimmomatic:
+    input: /storage1/victor/speedypipe4meta/data/F1_1.fq.gz, /storage1/victor/speedypipe4meta/data/F1_2.fq.gz
+    output: results/F1/trimmomatic/F1_forward_paired.fq.gz, results/F1/trimmomatic/F1_forward_unpaired.fq.gz, results/F1/trimmomatic/F1_reverse_paired.fq.gz, results/F1/trimmomatic/F1_reverse_unpaired.fq.gz
+    jobid: 3
+    reason: Missing output files: results/F1/trimmomatic/F1_reverse_paired.fq.gz, results/F1/trimmomatic/F1_forward_paired.fq.gz
+    wildcards: sample=F1
+    threads: 4
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 14:31:03 2023]
+Finished job 3.
+1 of 19 steps (5%) done
+Select jobs to execute...
+
+[Thu Jun  1 14:31:03 2023]
+rule megahit:
+    input: results/F1/trimmomatic/F1_forward_paired.fq.gz, results/F1/trimmomatic/F1_reverse_paired.fq.gz
+    output: results/F1/assembly/megahit/final.contigs.fa
+    log: results/F1/assembly/megahit/log-stdout.txt, results/F1/assembly/megahit/log-stderr.txt
+    jobid: 7
+    reason: Missing output files: results/F1/assembly/megahit/final.contigs.fa; Input files updated by another job: results/F1/trimmomatic/F1_reverse_paired.fq.gz, results/F1/trimmomatic/F1_forward_paired.fq.gz
+    wildcards: sample=F1
+    threads: 4
+    resources: tmpdir=/tmp, mem_gb=100
+
+
+[Thu Jun  1 14:31:03 2023]
+rule align_to_amr:
+    input: amr/megares.fasta.amb, amr/megares.fasta.ann, amr/megares.fasta.bwt, amr/megares.fasta.pac, amr/megares.fasta.sa, amr/megares.fasta, results/F1/trimmomatic/F1_forward_paired.fq.gz, results/F1/trimmomatic/F1_reverse_paired.fq.gz
+    output: results/F1/MEGARes/AlignToAMR/F1.amr.alignment.sam
+    jobid: 19
+    reason: Missing output files: results/F1/MEGARes/AlignToAMR/F1.amr.alignment.sam; Input files updated by another job: results/F1/trimmomatic/F1_reverse_paired.fq.gz, results/F1/trimmomatic/F1_forward_paired.fq.gz
+    wildcards: sample=F1
+    threads: 4
+    resources: tmpdir=/tmp
+
+
+[Thu Jun  1 14:31:03 2023]
+rule pre_idba:
+    input: results/F1/trimmomatic/F1_forward_paired.fq.gz, results/F1/trimmomatic/F1_reverse_paired.fq.gz
+    output: results/F1/trimmomatic/F1_forward_paired.fq, results/F1/trimmomatic/F1_reverse_paired.fq
+    jobid: 11
+    reason: Missing output files: results/F1/trimmomatic/F1_forward_paired.fq, results/F1/trimmomatic/F1_reverse_paired.fq; Input files updated by another job: results/F1/trimmomatic/F1_reverse_paired.fq.gz, results/F1/trimmomatic/F1_forward_paired.fq.gz
+    wildcards: sample=F1
+    resources: tmpdir=/tmp
+
+
+[Thu Jun  1 14:31:03 2023]
+rule kraken:
+    input: results/F1/trimmomatic/F1_forward_paired.fq.gz, results/F1/trimmomatic/F1_reverse_paired.fq.gz
+    output: results/F1/kraken/F1_report.txt, results/F1/kraken/F1_report.krona, results/F1/kraken/F1_report.html
+    log: results/F1/kraken/log-stdout.txt, results/F1/kraken/log-stderr.txt
+    jobid: 2
+    reason: Missing output files: results/F1/kraken/F1_report.html; Input files updated by another job: results/F1/trimmomatic/F1_reverse_paired.fq.gz, results/F1/trimmomatic/F1_forward_paired.fq.gz
+    wildcards: sample=F1
+    threads: 4
+    resources: tmpdir=/tmp
+
+
+[Thu Jun  1 14:31:03 2023]
+rule metaspades:
+    input: results/F1/trimmomatic/F1_forward_paired.fq.gz, results/F1/trimmomatic/F1_reverse_paired.fq.gz
+    output: results/F1/assembly/metaspades/scaffolds.fasta
+    log: results/F1/assembly/metaspades/log-stdout.txt, results/F1/assembly/metaspades/log-stderr.txt
+    jobid: 8
+    reason: Missing output files: results/F1/assembly/metaspades/scaffolds.fasta; Input files updated by another job: results/F1/trimmomatic/F1_reverse_paired.fq.gz, results/F1/trimmomatic/F1_forward_paired.fq.gz
+    wildcards: sample=F1
+    threads: 4
+    resources: tmpdir=/tmp, mem_gb=100
+
+[Thu Jun  1 14:31:06 2023]
+Finished job 11.
+2 of 19 steps (11%) done
+Select jobs to execute...
+
+[Thu Jun  1 14:31:06 2023]
+rule fq2fa:
+    input: results/F1/trimmomatic/F1_forward_paired.fq, results/F1/trimmomatic/F1_reverse_paired.fq
+    output: results/F1/assembly/idba/F1_1_2.fa
+    jobid: 10
+    reason: Missing output files: results/F1/assembly/idba/F1_1_2.fa; Input files updated by another job: results/F1/trimmomatic/F1_forward_paired.fq, results/F1/trimmomatic/F1_reverse_paired.fq
+    wildcards: sample=F1
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 14:31:11 2023]
+Finished job 10.
+3 of 19 steps (16%) done
+Select jobs to execute...
+
+[Thu Jun  1 14:31:11 2023]
+rule idba:
+    input: results/F1/assembly/idba/F1_1_2.fa
+    output: results/F1/assembly/idba/scaffold.fa
+    log: results/F1/assembly/idba/log-stdout.txt, results/F1/assembly/idba/log-stderr.txt
+    jobid: 9
+    reason: Missing output files: results/F1/assembly/idba/scaffold.fa; Input files updated by another job: results/F1/assembly/idba/F1_1_2.fa
+    wildcards: sample=F1
+    threads: 4
+    resources: tmpdir=/tmp, mem_gb=100
+
+[Thu Jun  1 14:31:12 2023]
+Finished job 1.
+4 of 19 steps (21%) done
+[Thu Jun  1 14:31:33 2023]
+Finished job 19.
+5 of 19 steps (26%) done
+Select jobs to execute...
+
+[Thu Jun  1 14:31:33 2023]
+rule run_resistome:
+    input: build_resistome.done, results/F1/MEGARes/AlignToAMR/F1.amr.alignment.sam, amr/megares.fasta, amr/megares_annotations.csv
+    output: results/F1/MEGARes/RunResistome/F1.gene.tsv, results/F1/MEGARes/RunResistome/F1.group.tsv, results/F1/MEGARes/RunResistome/F1.mechanism.tsv, results/F1/MEGARes/RunResistome/F1.class.tsv
+    jobid: 17
+    reason: Missing output files: results/F1/MEGARes/RunResistome/F1.gene.tsv; Input files updated by another job: results/F1/MEGARes/AlignToAMR/F1.amr.alignment.sam
+    wildcards: sample=F1
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 14:31:40 2023]
+Finished job 17.
+6 of 19 steps (32%) done
+Select jobs to execute...
+
+[Thu Jun  1 14:31:40 2023]
+rule resistome_results:
+    input: results/F1/MEGARes/RunResistome/F1.gene.tsv
+    output: results/F1/MEGARes/ResistomeResults/AMR_analytic_matrix.csv
+    jobid: 16
+    reason: Missing output files: results/F1/MEGARes/ResistomeResults/AMR_analytic_matrix.csv; Input files updated by another job: results/F1/MEGARes/RunResistome/F1.gene.tsv
+    wildcards: sample=F1
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 14:31:40 2023]
+Finished job 16.
+7 of 19 steps (37%) done
+[Thu Jun  1 14:32:14 2023]
+Finished job 2.
+8 of 19 steps (42%) done
+[Thu Jun  1 14:40:28 2023]
+Finished job 7.
+9 of 19 steps (47%) done
+[Thu Jun  1 14:43:46 2023]
+Finished job 8.
+10 of 19 steps (53%) done
+[Thu Jun  1 14:53:24 2023]
+Finished job 9.
+11 of 19 steps (58%) done
+Select jobs to execute...
+
+[Thu Jun  1 14:53:24 2023]
+rule metaquast:
+    input: results/F1/assembly/megahit/final.contigs.fa, results/F1/assembly/metaspades/scaffolds.fasta, results/F1/assembly/idba/scaffold.fa
+    output: results/F1/metaquast/combined_reference/report.tsv
+    jobid: 6
+    reason: Missing output files: results/F1/metaquast/combined_reference/report.tsv; Input files updated by another job: results/F1/assembly/megahit/final.contigs.fa, results/F1/assembly/idba/scaffold.fa, results/F1/assembly/metaspades/scaffolds.fasta
+    wildcards: sample=F1
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 14:59:24 2023]
+Finished job 6.
+12 of 19 steps (63%) done
+Select jobs to execute...
+
+[Thu Jun  1 14:59:24 2023]
+rule best_assembly:
+    input: results/F1/metaquast/combined_reference/report.tsv
+    output: results/F1/assembly/best_assembly, results/F1/assembly/best_assembly/final.contigs.fa
+    jobid: 5
+    reason: Missing output files: results/F1/assembly/best_assembly/final.contigs.fa, results/F1/assembly/best_assembly; Input files updated by another job: results/F1/metaquast/combined_reference/report.tsv
+    wildcards: sample=F1
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 14:59:24 2023]
+Finished job 5.
+13 of 19 steps (68%) done
+Select jobs to execute...
+
+[Thu Jun  1 14:59:24 2023]
+rule bowtie2:
+    input: results/F1/assembly/best_assembly/final.contigs.fa, results/F1/trimmomatic/F1_forward_paired.fq.gz, results/F1/trimmomatic/F1_reverse_paired.fq.gz
+    output: results/F1/bowtie2/F1.sam, results/F1/bowtie2
+    jobid: 15
+    reason: Missing output files: results/F1/bowtie2/F1.sam; Input files updated by another job: results/F1/trimmomatic/F1_reverse_paired.fq.gz, results/F1/assembly/best_assembly/final.contigs.fa, results/F1/trimmomatic/F1_forward_paired.fq.gz
+    wildcards: sample=F1
+    threads: 4
+    resources: tmpdir=/tmp
+
+
+[Thu Jun  1 14:59:24 2023]
+rule prokka:
+    input: results/F1/assembly/best_assembly/final.contigs.fa
+    output: results/F1/prokka/F1.gbk
+    log: results/F1/prokka/log-stdout.txt, results/F1/prokka/log-stderr.txt
+    jobid: 4
+    benchmark: results/F1/prokka/benchmark.txt
+    reason: Missing output files: results/F1/prokka/F1.gbk; Input files updated by another job: results/F1/assembly/best_assembly/final.contigs.fa
+    wildcards: sample=F1
+    threads: 4
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 15:00:08 2023]
+Finished job 15.
+14 of 19 steps (74%) done
+Select jobs to execute...
+
+[Thu Jun  1 15:00:08 2023]
+rule pileup:
+    input: bin/bbmap/pileup.sh, results/F1/bowtie2/F1.sam
+    output: results/F1/pileup/F1_cov.txt, results/F1/pileup/F1_abundance.txt
+    jobid: 14
+    reason: Missing output files: results/F1/pileup/F1_abundance.txt; Input files updated by another job: results/F1/bowtie2/F1.sam
+    wildcards: sample=F1
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 15:00:11 2023]
+Finished job 14.
+15 of 19 steps (79%) done
+Select jobs to execute...
+
+[Thu Jun  1 15:00:11 2023]
+rule maxbin2:
+    input: results/F1/assembly/best_assembly/final.contigs.fa, results/F1/pileup/F1_abundance.txt
+    output: results/F1/maxbin, results/F1/maxbin/list_bins.txt
+    jobid: 13
+    reason: Missing output files: results/F1/maxbin; Input files updated by another job: results/F1/pileup/F1_abundance.txt, results/F1/assembly/best_assembly/final.contigs.fa
+    wildcards: sample=F1
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 15:01:02 2023]
+Finished job 13.
+16 of 19 steps (84%) done
+Select jobs to execute...
+
+[Thu Jun  1 15:01:02 2023]
+rule prokka_bin:
+    input: results/F1/maxbin
+    output: results/F1/prokka_bin
+    log: results/F1/prokka_bin/log-stdout.txt, results/F1/prokka_bin/log-stderr.txt
+    jobid: 12
+    reason: Missing output files: results/F1/prokka_bin; Input files updated by another job: results/F1/maxbin
+    wildcards: sample=F1
+    threads: 4
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 15:12:31 2023]
+Finished job 4.
+17 of 19 steps (89%) done
+[Thu Jun  1 15:13:54 2023]
+Finished job 12.
+18 of 19 steps (95%) done
+Select jobs to execute...
+
+[Thu Jun  1 15:13:54 2023]
+localrule all:
+    input: results/F1/fastqc/F1_1_fastqc.html, results/F1/fastqc/F1_2_fastqc.html, results/F1/kraken/F1_report.html, results/F1/prokka/F1.gbk, results/F1/prokka_bin, results/F1/MEGARes/ResistomeResults/AMR_analytic_matrix.csv, results/F1/metaquast/combined_reference/report.tsv, results/F1/assembly/best_assembly
+    jobid: 0
+    reason: Input files updated by another job: results/F1/kraken/F1_report.html, results/F1/MEGARes/ResistomeResults/AMR_analytic_matrix.csv, results/F1/assembly/best_assembly, results/F1/prokka_bin, results/F1/fastqc/F1_2_fastqc.html, results/F1/metaquast/combined_reference/report.tsv, results/F1/fastqc/F1_1_fastqc.html, results/F1/prokka/F1.gbk
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 15:13:54 2023]
+Finished job 0.
+19 of 19 steps (100%) done
+Complete log: .snakemake/log/2023-06-01T143036.867326.snakemake.log

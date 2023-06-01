@@ -1,0 +1,73 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 64
+Rules claiming more threads will be scaled down.
+Conda environments: ignored
+Job stats:
+job           count    min threads    max threads
+----------  -------  -------------  -------------
+all               1              1              1
+bowtie2           1              4              4
+maxbin2           1              1              1
+pileup            1              1              1
+prokka_bin        1              4              4
+total             5              1              4
+
+Select jobs to execute...
+
+[Thu Jun  1 14:26:09 2023]
+rule bowtie2:
+    input: results/S1_test/assembly/best_assembly/final.contigs.fa, results/S1_test/trimmomatic/S1_test_forward_paired.fq.gz, results/S1_test/trimmomatic/S1_test_reverse_paired.fq.gz
+    output: results/S1_test/bowtie2/S1_test.sam, results/S1_test/bowtie2
+    jobid: 15
+    reason: Missing output files: results/S1_test/bowtie2/S1_test.sam
+    wildcards: sample=S1_test
+    threads: 4
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 14:26:09 2023]
+Finished job 15.
+1 of 5 steps (20%) done
+Select jobs to execute...
+
+[Thu Jun  1 14:26:09 2023]
+rule pileup:
+    input: bin/bbmap/pileup.sh, results/S1_test/bowtie2/S1_test.sam
+    output: results/S1_test/pileup/S1_test_cov.txt, results/S1_test/pileup/S1_test_abundance.txt
+    jobid: 14
+    reason: Missing output files: results/S1_test/pileup/S1_test_abundance.txt; Input files updated by another job: results/S1_test/bowtie2/S1_test.sam
+    wildcards: sample=S1_test
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 14:26:10 2023]
+Finished job 14.
+2 of 5 steps (40%) done
+Select jobs to execute...
+
+[Thu Jun  1 14:26:10 2023]
+rule maxbin2:
+    input: results/S1_test/assembly/best_assembly/final.contigs.fa, results/S1_test/pileup/S1_test_abundance.txt
+    output: results/S1_test/maxbin, results/S1_test/maxbin/list_bins.txt
+    jobid: 13
+    reason: Missing output files: results/S1_test/maxbin; Input files updated by another job: results/S1_test/pileup/S1_test_abundance.txt
+    wildcards: sample=S1_test
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 14:26:11 2023]
+Error in rule maxbin2:
+    jobid: 13
+    input: results/S1_test/assembly/best_assembly/final.contigs.fa, results/S1_test/pileup/S1_test_abundance.txt
+    output: results/S1_test/maxbin, results/S1_test/maxbin/list_bins.txt
+    conda-env: /storage1/victor/speedypipe4meta/.snakemake/conda/4e3c652eb1f0884dff60385860f576a5_
+    shell:
+        
+            /home/victor/storage/MaxBin-2.2.7/run_MaxBin.pl -min_contig_length 300 -thread 1 -contig results/S1_test/assembly/best_assembly/final.contigs.fa -out results/S1_test/maxbin/maxbin -abund results/S1_test/pileup/S1_test_abundance.txt
+            ls results/S1_test/maxbin/*.fasta > results/S1_test/maxbin/list_bins.txt
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job maxbin2 since they might be corrupted:
+results/S1_test/maxbin
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2023-06-01T142608.181456.snakemake.log

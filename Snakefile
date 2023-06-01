@@ -13,7 +13,7 @@ rule all:
         classification = ["results/" + sample + "/kraken/" + sample + "_report.html" for sample in config["samples"]],
         anotation = ["results/" + sample + "/prokka/" + sample + ".gbk" for sample in config["samples"]],
         anotation_bin = ["results/" + sample + "/prokka_bin/" for sample in config["samples"]],
-        # megares = ["results/" + sample + "/MEGARes/" for sample in config["samples"]],
+        megares = ["results/" + sample + "/MEGARes/ResistomeResults/AMR_analytic_matrix.csv" for sample in config["samples"]],
         metaquast = ["results/" + sample + "/metaquast/combined_reference/report.tsv" for sample in config["samples"]],
         best_assembly = ["results/" + sample + "/assembly/best_assembly" for sample in config["samples"]]
 
@@ -259,25 +259,25 @@ rule bowtie2:
             bowtie2-build -f {input.contig} {output.db}/{params.db}
             bowtie2 -x  {output.db}/{params.db} -1 {input.forward} -2 {input.revers} --no-unal -p {threads} -S {output.sam} 
         """
-# https://sourceforge.net/projects/bbmap/files/latest/download
-rule pileup_install:
-    output:
-        "results/bin/bbmap/pileup.sh"
-    shell:
-        """
-            wget https://sinalbr.dl.sourceforge.net/project/bbmap/BBMap_39.01.tar.gz
-            tar -xvzf BBMap_39.01.tar.gz
-            if [ ! -d ~/results/bin/bbmap ]; then
-                echo 'Movendo diretório...'
-                mv bbmap/ results/bin/
-            else
-                echo 'Diretório já existe'
-            fi
-        """
+# # https://sourceforge.net/projects/bbmap/files/latest/download
+# rule pileup_install:
+#     output:
+#         "results/bin/bbmap/pileup.sh"
+#     shell:
+#         """
+#             wget https://sinalbr.dl.sourceforge.net/project/bbmap/BBMap_39.01.tar.gz
+#             tar -xvzf BBMap_39.01.tar.gz
+#             if [ ! -d ~/results/bin/bbmap ]; then
+#                 echo 'Movendo diretório...'
+#                 mv bbmap/ results/bin/
+#             else
+#                 echo 'Diretório já existe'
+#             fi
+#         """
 
 rule pileup:
     input:
-        pileup = "results/bin/bbmap/pileup.sh",
+        pileup = "bin/bbmap/pileup.sh",
         sam = "results/{sample}/bowtie2/{sample}.sam"
     output:
         coverage = "results/{sample}/pileup/{sample}_cov.txt",
@@ -335,7 +335,7 @@ rule prokka_bin:
                 prokka --force --cpus {threads} --outdir {params.outdir}/$prefix --prefix $prefix $file --centre X --compliant > {log.stdout} 2> {log.stderr}; 
             done
         """
-
+# Chamado
 rule get_megares:
     output:
         megares_ann = "amr/megares_annotations.csv",
@@ -349,12 +349,107 @@ rule get_megares:
         "wget -O {output.megares_ann} {params.ann_link}; "
         "wget -O {output.megares_fasta} {params.fasta_link}"
 
-rule megares:
-    input:
-        'amrplusplus_v2/main_AmrPlusPlus_v2_withRGI.nf'
+# Chamado
+rule build_resistome:
     output:
-        directory("results/{sample}/MEGARes/")
+        touch("build_resistome.done")
+    conda:
+        "envs/git.yaml"
     shell:
-        """
-            nextflow run {input} --pipeline standard_AMR -profile singularity --output {output} -resume
-        """
+        "bin/build_resistome.sh"
+
+# Chamar no Refaction
+rule build_rarefaction:
+    output:
+        touch("build_rarefaction.done")
+    conda:
+        "envs/git.yaml"
+    shell:
+        "bin/build_rarefaction.sh"
+
+# Chamado
+rule build_amr_index:
+    input:
+        "amr/megares.fasta"
+    output:
+        "amr/megares.fasta.amb",
+        "amr/megares.fasta.ann",
+        "amr/megares.fasta.bwt",
+        "amr/megares.fasta.pac",
+        "amr/megares.fasta.sa"
+    conda:
+        "envs/bwa.yaml"
+    shell:
+        "bwa index {input}"
+# Chamado
+rule align_to_amr:
+    input:
+        "amr/megares.fasta.amb",
+        "amr/megares.fasta.ann",
+        "amr/megares.fasta.bwt",
+        "amr/megares.fasta.pac",
+        "amr/megares.fasta.sa",
+        amr = "amr/megares.fasta",
+        forward = "results/{sample}/trimmomatic/{sample}_forward_paired.fq.gz",
+        revers = "results/{sample}/trimmomatic/{sample}_reverse_paired.fq.gz"
+    output:
+        "results/{sample}/MEGARes/AlignToAMR/{sample}.amr.alignment.sam"
+    conda:
+        "envs/bwa.yaml"
+    params:
+        rg = r"@RG\tID:${sample}\tSM:${sample}"
+    threads:
+        config["threads"]
+    shell:
+        "bwa mem -t {threads} -R '{params.rg}' {input.amr} "
+        "{input.forward} {input.revers} > {output}"
+
+# Chamado
+rule run_resistome:
+    input:
+        "build_resistome.done",
+        sam = "results/{sample}/MEGARes/AlignToAMR/{sample}.amr.alignment.sam",
+        amr = "amr/megares.fasta",
+        annotation = "amr/megares_annotations.csv"
+    output:
+        gene_fp = "results/{sample}/MEGARes/RunResistome/{sample}.gene.tsv",
+        group_fp = "results/{sample}/MEGARes/RunResistome/{sample}.group.tsv",
+        mech_fp = "results/{sample}/MEGARes/RunResistome/{sample}.mechanism.tsv",
+        class_fp = "results/{sample}/MEGARes/RunResistome/{sample}.class.tsv"
+        #type_fp = OUTDIR + "results/{sample}/MEGARes/RunResistome/{sample}.type.tsv"
+    conda:
+        "envs/megares.yaml"
+    params:
+        threshold = 80
+    shell:
+        "bin/resistome "
+        "-ref_fp {input.amr} "
+        "-annot_fp {input.annotation} "
+        "-sam_fp {input.sam} "
+        "-gene_fp {output.gene_fp} "
+        "-group_fp {output.group_fp} "
+        "-mech_fp {output.mech_fp} "
+        "-class_fp {output.class_fp} "
+        #"-type_fp {output.type_fp} "
+        "-t {params.threshold}"
+
+# Chama
+rule resistome_results:
+    input:
+        expand("results/{sample}/MEGARes/RunResistome/{sample}.gene.tsv", sample = config["samples"])
+    output:
+        "results/{sample}/MEGARes/ResistomeResults/AMR_analytic_matrix.csv"
+    conda:
+        "envs/megares.yaml"
+    shell:
+        "bin/amr_long_to_wide.py -i {input} -o {output}"
+
+# rule megares:
+#     input:
+#         'amrplusplus_v2/main_AmrPlusPlus_v2_withRGI.nf'
+#     output:
+#         directory("results/{sample}/MEGARes/")
+#     shell:
+#         """
+#             nextflow run {input} --pipeline standard_AMR -profile singularity --output {output} -resume
+#         """

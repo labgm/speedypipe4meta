@@ -1,0 +1,102 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 64
+Rules claiming more threads will be scaled down.
+Conda environments: ignored
+Job stats:
+job                  count    min threads    max threads
+-----------------  -------  -------------  -------------
+align_to_amr             1              4              4
+all                      1              1              1
+maxbin2                  1              1              1
+pileup                   1              1              1
+prokka_bin               1              4              4
+resistome_results        1              1              1
+run_resistome            1              1              1
+total                    7              1              4
+
+Select jobs to execute...
+
+[Thu Jun  1 14:23:47 2023]
+rule align_to_amr:
+    input: amr/megares.fasta.amb, amr/megares.fasta.ann, amr/megares.fasta.bwt, amr/megares.fasta.pac, amr/megares.fasta.sa, amr/megares.fasta, results/S1_test/trimmomatic/S1_test_forward_paired.fq.gz, results/S1_test/trimmomatic/S1_test_reverse_paired.fq.gz
+    output: results/S1_test/MEGARes/AlignToAMR/S1_test.amr.alignment.sam
+    jobid: 19
+    reason: Missing output files: results/S1_test/MEGARes/AlignToAMR/S1_test.amr.alignment.sam
+    wildcards: sample=S1_test
+    threads: 4
+    resources: tmpdir=/tmp
+
+
+[Thu Jun  1 14:23:47 2023]
+rule pileup:
+    input: bin/bbmap/pileup.sh, results/S1_test/bowtie2/S1_test.sam
+    output: results/S1_test/pileup/S1_test_cov.txt, results/S1_test/pileup/S1_test_abundance.txt
+    jobid: 14
+    reason: Set of input files has changed since last execution
+    wildcards: sample=S1_test
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 14:23:48 2023]
+Finished job 14.
+1 of 7 steps (14%) done
+Select jobs to execute...
+
+[Thu Jun  1 14:23:48 2023]
+rule maxbin2:
+    input: results/S1_test/assembly/best_assembly/final.contigs.fa, results/S1_test/pileup/S1_test_abundance.txt
+    output: results/S1_test/maxbin, results/S1_test/maxbin/list_bins.txt
+    jobid: 13
+    reason: Missing output files: results/S1_test/maxbin; Input files updated by another job: results/S1_test/pileup/S1_test_abundance.txt
+    wildcards: sample=S1_test
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 14:23:48 2023]
+Finished job 19.
+2 of 7 steps (29%) done
+Select jobs to execute...
+
+[Thu Jun  1 14:23:48 2023]
+rule run_resistome:
+    input: build_resistome.done, results/S1_test/MEGARes/AlignToAMR/S1_test.amr.alignment.sam, amr/megares.fasta, amr/megares_annotations.csv
+    output: results/S1_test/MEGARes/RunResistome/S1_test.gene.tsv, results/S1_test/MEGARes/RunResistome/S1_test.group.tsv, results/S1_test/MEGARes/RunResistome/S1_test.mechanism.tsv, results/S1_test/MEGARes/RunResistome/S1_test.class.tsv
+    jobid: 17
+    reason: Missing output files: results/S1_test/MEGARes/RunResistome/S1_test.gene.tsv; Input files updated by another job: results/S1_test/MEGARes/AlignToAMR/S1_test.amr.alignment.sam
+    wildcards: sample=S1_test
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 14:23:49 2023]
+Finished job 17.
+3 of 7 steps (43%) done
+Select jobs to execute...
+
+[Thu Jun  1 14:23:49 2023]
+rule resistome_results:
+    input: results/S1_test/MEGARes/RunResistome/S1_test.gene.tsv
+    output: results/S1_test/MEGARes/ResistomeResults/AMR_analytic_matrix.csv
+    jobid: 16
+    reason: Missing output files: results/S1_test/MEGARes/ResistomeResults/AMR_analytic_matrix.csv; Input files updated by another job: results/S1_test/MEGARes/RunResistome/S1_test.gene.tsv
+    wildcards: sample=S1_test
+    resources: tmpdir=/tmp
+
+[Thu Jun  1 14:23:49 2023]
+Finished job 16.
+4 of 7 steps (57%) done
+[Thu Jun  1 14:23:49 2023]
+Error in rule maxbin2:
+    jobid: 13
+    input: results/S1_test/assembly/best_assembly/final.contigs.fa, results/S1_test/pileup/S1_test_abundance.txt
+    output: results/S1_test/maxbin, results/S1_test/maxbin/list_bins.txt
+    conda-env: /storage1/victor/speedypipe4meta/.snakemake/conda/4e3c652eb1f0884dff60385860f576a5_
+    shell:
+        
+            /home/victor/storage/MaxBin-2.2.7/run_MaxBin.pl -min_contig_length 300 -thread 1 -contig results/S1_test/assembly/best_assembly/final.contigs.fa -out results/S1_test/maxbin/maxbin -abund results/S1_test/pileup/S1_test_abundance.txt
+            ls results/S1_test/maxbin/*.fasta > results/S1_test/maxbin/list_bins.txt
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job maxbin2 since they might be corrupted:
+results/S1_test/maxbin
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2023-06-01T142346.366098.snakemake.log

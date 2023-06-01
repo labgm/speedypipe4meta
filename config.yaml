@@ -12,9 +12,9 @@ kraken:
     db: '/usr/local/kraken2/db_standard'
 
 samples:
-    'S1_test':
-        forward: 'data/S1_test_1.fastq.gz'
-        revers: 'data/S1_test_2.fastq.gz'
+    'F1':
+        forward: 'data/F1_1.fq.gz'
+        revers: 'data/F1_2.fq.gz'
 
 # Mininum length of contigs
 contigs:
