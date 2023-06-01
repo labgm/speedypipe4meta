@@ -290,9 +290,6 @@ rule pileup:
             awk '{params.var}' {output.coverage} | grep -v '^#'> {output.abundance}
         """
 
-import os
-import fnmatch
-
 rule maxbin2:
     input:
         contig = "results/{sample}/assembly/best_assembly/final.contigs.fa",
