@@ -173,7 +173,7 @@ rule metaquast:
         outdir = "results/{sample}/metaquast"
     shell:
         """
-            metaquast.py -o {params.outdir} {input.megahit} {input.metaspades} {input.idba} -l Megahit,SPades,Idba
+            metaquast.py -o {params.outdir} -l Megahit,SPades,Idba {input.megahit} {input.metaspades} {input.idba}
         """
 
 rule best_assembly:
