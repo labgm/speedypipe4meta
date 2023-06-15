@@ -8,7 +8,7 @@ import os
 parser = argparse.ArgumentParser(description='Takes all fastq files from a folder and creates a snakemake config file for processing the datasets.')
 parser.add_argument('input_folder', type=str, help='Input folder containing the FASTQ files')
 parser.add_argument('--config_file', type=str, default='config.yaml', help='File to write config file [default: config.yaml]')
-parser.add_argument('--threads', type=int, default=40, help='Maximum number of threads for each task in the pipeline [default: 4]')
+parser.add_argument('--threads', type=int, default=70, help='Maximum number of threads for each task in the pipeline [default: 4]')
 parser.add_argument('--mem_mb', type=int, default=256000, help='Maximum amount of RAM in MB for each task in the pipeline [default: 256000]')
 args = parser.parse_args()
 
@@ -22,7 +22,7 @@ if path.isdir(args.input_folder):
     config.write("    klist: '65'\n\n")
     config.write("# KRAKEN parameters\n")
     config.write("kraken:\n")
-    config.write("    db: '/usr/local/kraken2/db_standard'\n\n")
+    config.write("    db: '/MP_Data/database/kraken2/standard-db_2023'\n\n")
     config.write("samples:\n")
     forward = glob.iglob(args.input_folder + "/**/*_1.*", recursive=True)
     for f in forward:
