@@ -304,7 +304,7 @@ rule maxbin2:
     #     id_bins = "[0-9]",
     shell:
         """
-            /home/victor/storage/MaxBin-2.2.7/run_MaxBin.pl -min_contig_length 300 -thread {threads} -contig {input.contig} -out {output.folder}/maxbin -abund {input.abundance}
+            bin/MaxBin-2.2.7/run_MaxBin.pl -min_contig_length 300 -thread {threads} -contig {input.contig} -out {output.folder}/maxbin -abund {input.abundance}
             ls {output.folder}/*.fasta > {output.listBins}
         """
 # ls {output.folder}/*.fasta > {output.listBins}
