@@ -10,6 +10,8 @@ rule all:
     input:
         fastqc_forward = ["results/" + sample + "/fastqc/" + sample + "_1_fastqc.html" for sample in config["samples"]],
         fastqc_revers = ["results/" + sample + "/fastqc/" + sample + "_2_fastqc.html" for sample in config["samples"]],
+        fastqc_forward_pos = ["results/" + sample + "/fastqc/" + sample + "_1_fastqc_pos.html" for sample in config["samples"]],
+        fastqc_revers_pos = ["results/" + sample + "/fastqc/" + sample + "_2_fastqc_pos.html" for sample in config["samples"]],
         classification = ["results/" + sample + "/kraken/" + sample + "_report.html" for sample in config["samples"]],
         anotation = ["results/" + sample + "/prokka/" + sample + ".gbk" for sample in config["samples"]],
         anotation_bin = ["results/" + sample + "/prokka_bin/" for sample in config["samples"]],
@@ -41,6 +43,28 @@ rule fastqc:
     shell:
         "fastqc --threads {threads} --outdir {params.outdir} {input.forward} {input.revers} > {log.stdout} 2> {log.stderr}"
 
+rule fastqc_pos:
+    input:
+        forward = "results/{sample}/trimmomatic/{sample}_forward_paired.fq.gz",
+        revers = "results/{sample}/trimmomatic/{sample}_reverse_paired.fq.gz"
+    params:
+        outdir = "results/{sample}/fastqc"
+    output:
+        forward = "results/{sample}/fastqc/{sample}_1_fastqc_pos.html",
+        revers = "results/{sample}/fastqc/{sample}_2_fastqc_pos.html"
+    log:
+        stdout = "results/{sample}/fastqc/log-stdout_pos.txt",
+        stderr = "results/{sample}/fastqc/log-stderr_pos.txt"
+    conda:
+        "envs/fastqc.yaml"
+    benchmark:
+        "results/{sample}/fastqc/benchmark_pos.txt"
+    threads:
+        config["threads"]
+    shell:
+        "fastqc --threads {threads} --outdir {params.outdir} {input.forward} {input.revers} > {log.stdout} 2> {log.stderr}"
+
+
 # Step 2:  Trim and Crop
 rule trimmomatic:
     input:
@@ -61,7 +85,7 @@ rule trimmomatic:
             {output[0]} {output[1]} \
             {output[2]} {output[3]} \
             ILLUMINACLIP:TruSeq3-PE.fa:2:30:10:2:keepBothReads \
-            LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:70 \
+            LEADING:3 TRAILING:3 SLIDINGWINDOW:4:20 MINLEN:36 \
         """
 
 # Step 3: Assembly Megahit
