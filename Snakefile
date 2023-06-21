@@ -205,7 +205,7 @@ rule metaquast:
         "results/{sample}/metaquast/benchmark.txt"
     shell:
         """
-            metaquast.py --no-plots --fast --space-efficient --no-html --no-icarus -o {params.outdir} -l Megahit,SPades,Idba {input.megahit} {input.metaspades} {input.idba}
+            metaquast.py -r quast_references -o {params.outdir} -l Megahit,SPades,Idba {input.megahit} {input.metaspades} {input.idba}
         """
 
 rule best_assembly:
