@@ -50,8 +50,8 @@ rule fastqc_pos:
     params:
         outdir = "results/{sample}/fastqc"
     output:
-        forward = "results/{sample}/fastqc/fastqc_pos/{sample}_1_fastqc_pos.html",
-        revers = "results/{sample}/fastqc/fastqc_pos/{sample}_2_fastqc_pos.html"
+        forward = "results/{sample}/fastqc/fastqc_pos/{sample}_1_fastqc.html",
+        revers = "results/{sample}/fastqc/fastqc_pos/{sample}_2_fastqc.html"
     log:
         stdout = "results/{sample}/fastqc/log-stdout_pos.txt",
         stderr = "results/{sample}/fastqc/log-stderr_pos.txt"
