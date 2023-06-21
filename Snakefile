@@ -77,6 +77,8 @@ rule trimmomatic:
         "results/{sample}/trimmomatic/{sample}_reverse_unpaired.fq.gz"  # for unpaired reverse reads 
     threads:
         config["threads"]
+    benchmark:
+        "results/{sample}/trimmomatic/benchmark.txt"
     shell:
         """
         trimmomatic PE \
@@ -103,8 +105,8 @@ rule megahit:
         stderr = "results/{sample}/assembly/megahit/log-stderr.txt"
     conda:
         "envs/megahit.yaml"
-    # benchmark:
-    #     "results/{sample}/spades/benchmark.txt"
+    benchmark:
+        "results/{sample}/assembly/megahit/benchmark.txt"
     resources:
         mem_gb = 400
     threads:
@@ -134,6 +136,8 @@ rule metaspades:
         mem_gb = 400
     threads:
         config["threads"]
+    benchmark:
+        "results/{sample}/assembly/metaspades/benchmark.txt"
     shell:
         """
             metaspades.py -o {params.output} -1 {input.forward} -2 {input.revers} -k {params.klist} --threads {threads} --memory {resources.mem_gb}
@@ -177,6 +181,8 @@ rule idba:
         # "envs/idba.yaml"
     resources:
         mem_gb = 400
+    benchmark:
+        "results/{sample}/assembly/idba/benchmark.txt"
     threads:
         config["threads"]
     shell:
@@ -195,6 +201,8 @@ rule metaquast:
         "results/{sample}/metaquast/combined_reference/report.tsv"
     params:
         outdir = "results/{sample}/metaquast"
+    benchmark:
+        "results/{sample}/metaquast/benchmark.txt"
     shell:
         """
             metaquast.py --no-plots --fast --space-efficient --no-html --no-icarus -o {params.outdir} -l Megahit,SPades,Idba {input.megahit} {input.metaspades} {input.idba}
@@ -208,6 +216,8 @@ rule best_assembly:
         "results/{sample}/assembly/best_assembly/final.contigs.fa"
     params:
         "results/{sample}/assembly/final.contigs.fa"
+    benchmark:
+        "results/{sample}/best_assembly/benchmark.txt"
     shell:
         """
             python scripts/best_assembly.py --input {input}
@@ -229,6 +239,8 @@ rule kraken:
         stderr = "results/{sample}/kraken/log-stderr.txt"
     params:
         db = config["kraken"]['db']
+    benchmark:
+        "results/{sample}/kraken/benchmark.txt"
     threads:
         config["threads"]
     shell:
@@ -278,6 +290,8 @@ rule bowtie2:
         db = "{sample}db"
     threads:
         config["threads"]
+    benchmark:
+        "results/{sample}/bowtie2/benchmark.txt"
     shell:
         """
             bowtie2-build -f {input.contig} {output.db}/{params.db}
@@ -308,6 +322,8 @@ rule pileup:
         abundance = "results/{sample}/pileup/{sample}_abundance.txt"
     params:
         var = "{print $1\"\t\"$5}"
+    benchmark:
+        "results/{sample}/pileup/benchmark.txt"
     shell:
         """
             {input.pileup} -Xmx5G in={input.sam} out={output.coverage}
@@ -326,6 +342,8 @@ rule maxbin2:
         "envs/maxbin.yaml"
     # wildcard_constraints:
     #     id_bins = "[0-9]",
+    benchmark:
+        "results/{sample}/maxbin/benchmark.txt"
     shell:
         """
             bin/MaxBin-2.2.7/run_MaxBin.pl -min_contig_length 300 -thread {threads} -contig {input.contig} -out {output.folder}/maxbin -abund {input.abundance}
@@ -348,6 +366,8 @@ rule prokka_bin:
         prokka = "results/bin/prokka/binaries/linux"
     threads:
         config["threads"]
+    benchmark:
+        "results/{sample}/prokka_bin/benchmark.txt"
     shell:
         """
             export PATH={params.prokka}:$PATH
@@ -421,6 +441,8 @@ rule align_to_amr:
         rg = r"@RG\tID:${sample}\tSM:${sample}"
     threads:
         config["threads"]
+    benchmark:
+        "results/{sample}/MEGARes/AlignToAMR/benchmark.txt"
     shell:
         "bwa mem -t {threads} -R '{params.rg}' {input.amr} "
         "{input.forward} {input.revers} > {output}"
@@ -442,6 +464,8 @@ rule run_resistome:
         "envs/megares.yaml"
     params:
         threshold = 80
+    benchmark:
+        "results/{sample}/MEGARes/RunResistome/benchmark.txt"
     shell:
         "bin/resistome "
         "-ref_fp {input.amr} "
@@ -462,6 +486,8 @@ rule resistome_results:
         "results/{sample}/MEGARes/ResistomeResults/AMR_analytic_matrix.csv"
     conda:
         "envs/megares.yaml"
+    benchmark:
+        "results/{sample}/MEGARes/ResistomeResults/benchmark.txt"
     shell:
         "bin/amr_long_to_wide.py -i {input} -o {output}"
 
