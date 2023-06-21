@@ -106,7 +106,7 @@ rule megahit:
     # benchmark:
     #     "results/{sample}/spades/benchmark.txt"
     resources:
-        mem_gb = 100
+        mem_gb = 400
     threads:
         config["threads"]
     shell:
@@ -131,12 +131,12 @@ rule metaspades:
     # conda:
     #     "envs/metaspades.yaml"
     resources:
-        mem_gb = 100
+        mem_gb = 400
     threads:
         config["threads"]
     shell:
         """
-            metaspades.py --no-plots --fast --space-efficient --no-html --no-icarus -o {params.output} -1 {input.forward} -2 {input.revers} -k {params.klist} --threads {threads} --memory {resources.mem_gb}
+            metaspades.py -o {params.output} -1 {input.forward} -2 {input.revers} -k {params.klist} --threads {threads} --memory {resources.mem_gb}
         """
         # -k {config["metaspades"]["kmer_sizes"]}
 # Step 3: Assembly IDBA-UD
@@ -176,7 +176,7 @@ rule idba:
     # conda:
         # "envs/idba.yaml"
     resources:
-        mem_gb = 100
+        mem_gb = 400
     threads:
         config["threads"]
     shell:
@@ -197,7 +197,7 @@ rule metaquast:
         outdir = "results/{sample}/metaquast"
     shell:
         """
-            metaquast.py -o {params.outdir} -l Megahit,SPades,Idba {input.megahit} {input.metaspades} {input.idba}
+            metaquast.py --no-plots --fast --space-efficient --no-html --no-icarus -o {params.outdir} -l Megahit,SPades,Idba {input.megahit} {input.metaspades} {input.idba}
         """
 
 rule best_assembly:
