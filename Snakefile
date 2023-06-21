@@ -10,8 +10,8 @@ rule all:
     input:
         fastqc_forward = ["results/" + sample + "/fastqc/" + sample + "_1_fastqc.html" for sample in config["samples"]],
         fastqc_revers = ["results/" + sample + "/fastqc/" + sample + "_2_fastqc.html" for sample in config["samples"]],
-        fastqc_forward_pos = ["results/" + sample + "/fastqc/" + sample + "_1_fastqc_pos.html" for sample in config["samples"]],
-        fastqc_revers_pos = ["results/" + sample + "/fastqc/" + sample + "_2_fastqc_pos.html" for sample in config["samples"]],
+        fastqc_forward_pos = ["results/" + sample + "/fastqc/fastqc_pos/" + sample + "_1_fastqc_pos.html" for sample in config["samples"]],
+        fastqc_revers_pos = ["results/" + sample + "/fastqc/fastqc_pos/" + sample + "_2_fastqc_pos.html" for sample in config["samples"]],
         classification = ["results/" + sample + "/kraken/" + sample + "_report.html" for sample in config["samples"]],
         anotation = ["results/" + sample + "/prokka/" + sample + ".gbk" for sample in config["samples"]],
         anotation_bin = ["results/" + sample + "/prokka_bin/" for sample in config["samples"]],
@@ -50,8 +50,8 @@ rule fastqc_pos:
     params:
         outdir = "results/{sample}/fastqc"
     output:
-        forward = "results/{sample}/fastqc/{sample}_1_fastqc_pos.html",
-        revers = "results/{sample}/fastqc/{sample}_2_fastqc_pos.html"
+        forward = "results/{sample}/fastqc/fastqc_pos/{sample}_1_fastqc_pos.html",
+        revers = "results/{sample}/fastqc/fastqc_pos/{sample}_2_fastqc_pos.html"
     log:
         stdout = "results/{sample}/fastqc/log-stdout_pos.txt",
         stderr = "results/{sample}/fastqc/log-stderr_pos.txt"
