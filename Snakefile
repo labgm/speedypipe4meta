@@ -136,7 +136,7 @@ rule metaspades:
         config["threads"]
     shell:
         """
-            metaspades.py -o {params.output} -1 {input.forward} -2 {input.revers} -k {params.klist} --threads {threads} --memory {resources.mem_gb}
+            metaspades.py --no-plots --fast --space-efficient --no-html --no-icarus -o {params.output} -1 {input.forward} -2 {input.revers} -k {params.klist} --threads {threads} --memory {resources.mem_gb}
         """
         # -k {config["metaspades"]["kmer_sizes"]}
 # Step 3: Assembly IDBA-UD
