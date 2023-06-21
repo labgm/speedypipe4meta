@@ -48,7 +48,7 @@ rule fastqc_pos:
         forward = "results/{sample}/trimmomatic/{sample}_forward_paired.fq.gz",
         revers = "results/{sample}/trimmomatic/{sample}_reverse_paired.fq.gz"
     params:
-        outdir = "results/{sample}/fastqc"
+        outdir = "results/{sample}/fastqc/fastqc_pos"
     output:
         forward = "results/{sample}/fastqc/fastqc_pos/{sample}_1_fastqc.html",
         revers = "results/{sample}/fastqc/fastqc_pos/{sample}_2_fastqc.html"
